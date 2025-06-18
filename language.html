@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>全域畅游——基于跨模态学习的Roban智能服务机器人</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1e40af;
+            --secondary-color: #60a5fa;
+            --accent-color: #93c5fd;
+            --dark-color: #1e293b;
+            --light-color: #f0f9ff;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #dbeafe, #eff6ff, #e0f2fe);
+            min-height: 100vh;
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            box-shadow: 0 4px 6px rgba(30, 64, 175, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(30, 64, 175, 0.3);
+        }
+        
+        .language-container {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(30, 64, 175, 0.2);
+            overflow: hidden;
+        }
+        
+        .language-card {
+            background: white;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .language-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .language-card.active {
+            border-color: var(--secondary-color);
+            background-color: rgba(219, 234, 254, 0.5);
+        }
+        
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: rgba(96, 165, 250, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        .language-progress {
+            height: 6px;
+            transition: width 0.3s ease;
+        }
+        
+        .setting-row {
+            transition: all 0.3s ease;
+        }
+        
+        .setting-row:hover {
+            background-color: rgba(219, 234, 254, 0.3);
+        }
+        
+        .robot-globe {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin: 0 auto;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-10px) rotate(5deg);
+            }
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+        }
+        
+        .globe-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #93c5fd;
+            border-radius: 50%;
+            opacity: 0.7;
+        }
+        
+        .globe-ring:nth-child(1) {
+            animation: rotate 15s linear infinite;
+        }
+        
+        .globe-ring:nth-child(2) {
+            width: 90%;
+            height: 90%;
+            top: 5%;
+            left: 5%;
+            transform: rotate(45deg);
+            animation: rotate 12s linear infinite reverse;
+        }
+        
+        .globe-ring:nth-child(3) {
+            width: 80%;
+            height: 80%;
+            top: 10%;
+            left: 10%;
+            transform: rotate(90deg);
+            animation: rotate 18s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .element-bounce {
+            animation: bounce 2s ease infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        .success-message {
+            background-color: rgba(52, 211, 153, 0.1);
+            border-left: 4px solid #34D399;
+            padding: 1rem;
+            color: #065f46;
+            margin-bottom: 1rem;
+            animation: fadeIn 0.5s ease-in-out;
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="pt-16 pb-12">
+    <nav class="bg-white shadow-md fixed w-full top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-robot text-2xl text-blue-600"></i>
+                <span class="text-xl font-bold text-gray-800">全域畅游——基于跨模态学习的Roban智能服务机器人</span>
+            </div>
+            
+            <div class="hidden md:flex space-x-6">
+                <a href="index.html" class="nav-link text-gray-700 hover:text-blue-600">首页</a>
+                <a href="map.html" class="nav-link text-gray-700 hover:text-blue-600">路径规划</a>
+                <a href="feedback.html" class="nav-link text-gray-700 hover:text-blue-600">用户反馈</a>
+                <a href="weather.html" class="nav-link text-gray-700 hover:text-blue-600">天气信息</a>
+                <a href="language.html" class="nav-link text-blue-600 font-medium">语言设置</a>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <a href="login.html" id="authButton" class="btn-primary px-4 py-2 rounded-md text-white text-sm font-medium">
+                    登录 / 注册
+                </a>
+                <button class="md:hidden text-gray-700 focus:outline-none" id="menuToggle">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 移动端菜单 -->
+        <div id="mobileMenu" class="hidden bg-white w-full py-3 px-4 shadow-lg md:hidden">
+            <div class="flex flex-col space-y-3">
+                <a href="index.html" class="text-gray-700 hover:text-blue-600 py-2">首页</a>
+                <a href="map.html" class="text-gray-700 hover:text-blue-600 py-2">路径规划</a>
+                <a href="feedback.html" class="text-gray-700 hover:text-blue-600 py-2">用户反馈</a>
+                <a href="weather.html" class="text-gray-700 hover:text-blue-600 py-2">天气信息</a>
+                <a href="language.html" class="text-blue-600 font-medium py-2">语言设置</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">语言设置</h1>
+        <p class="text-lg text-gray-600 mb-8">为您提供多语言导览服务体验，根据您的偏好进行选择</p>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+            <!-- 主要语言设置区域 -->
+            <div class="lg:col-span-2">
+                <div class="language-container p-6">
+                    <div id="successMessage" class="success-message">
+                        <p><i class="fas fa-check-circle mr-2"></i>语言设置已保存！系统将使用您选择的语言提供服务。</p>
+                    </div>
+                    
+                    <h2 class="text-xl font-semibold text-gray-800 mb-6">选择您的首选语言</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        <!-- 中文 -->
+                        <div class="language-card p-4 cursor-pointer active" data-lang="zh-CN">
+                            <div class="flex flex-col items-center">
+                                <div class="w-16 h-16 rounded-full flex items-center justify-center bg-red-100 mb-3">
+                                    <span class="text-2xl">🇨🇳</span>
+                                </div>
+                                <h3 class="font-medium text-lg text-gray-800">中文</h3>
+                                <p class="text-gray-500 text-sm">简体中文</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 英语 -->
+                        <div class="language-card p-4 cursor-pointer" data-lang="en-US">
+                            <div class="flex flex-col items-center">
+                                <div class="w-16 h-16 rounded-full flex items-center justify-center bg-blue-100 mb-3">
+                                    <span class="text-2xl">🇺🇸</span>
+                                </div>
+                                <h3 class="font-medium text-lg text-gray-800">English</h3>
+                                <p class="text-gray-500 text-sm">United States</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 日语 -->
+                        <div class="language-card p-4 cursor-pointer" data-lang="ja-JP">
+                            <div class="flex flex-col items-center">
+                                <div class="w-16 h-16 rounded-full flex items-center justify-center bg-red-50 mb-3">
+                                    <span class="text-2xl">🇯🇵</span>
+                                </div>
+                                <h3 class="font-medium text-lg text-gray-800">日本語</h3>
+                                <p class="text-gray-500 text-sm">Japanese</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 韩语 -->
+                        <div class="language-card p-4 cursor-pointer" data-lang="ko-KR">
+                            <div class="flex flex-col items-center">
+                                <div class="w-16 h-16 rounded-full flex items-center justify-center bg-blue-50 mb-3">
+                                    <span class="text-2xl">🇰🇷</span>
+                                </div>
+                                <h3 class="font-medium text-lg text-gray-800">한국어</h3>
+                                <p class="text-gray-500 text-sm">Korean</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 俄语 -->
+                        <div class="language-card p-4 cursor-pointer" data-lang="ru-RU">
+                            <div class="flex flex-col items-center">
+                                <div class="w-16 h-16 rounded-full flex items-center justify-center bg-red-50 mb-3">
+                                    <span class="text-2xl">🇷🇺</span>
+                                </div>
+                                <h3 class="font-medium text-lg text-gray-800">Русский</h3>
+                                <p class="text-gray-500 text-sm">Russian</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 法语 -->
+                        <div class="language-card p-4 cursor-pointer" data-lang="fr-FR">
+                            <div class="flex flex-col items-center">
+                                <div class="w-16 h-16 rounded-full flex items-center justify-center bg-blue-50 mb-3">
+                                    <span class="text-2xl">🇫🇷</span>
+                                </div>
+                                <h3 class="font-medium text-lg text-gray-800">Français</h3>
+                                <p class="text-gray-500 text-sm">French</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 更多语言设置 -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-800 mb-4">语音和文本设置</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="setting-row p-3 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label for="speechSpeed" class="text-gray-700">语音播报速度</label>
+                                    <span id="speechSpeedValue" class="text-gray-700 font-medium">正常</span>
+                                </div>
+                                <input type="range" id="speechSpeed" min="1" max="5" step="1" value="3" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                    <span>较慢</span>
+                                    <span>正常</span>
+                                    <span>较快</span>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-row p-3 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label for="textSize" class="text-gray-700">文本显示大小</label>
+                                    <span id="textSizeValue" class="text-gray-700 font-medium">中等</span>
+                                </div>
+                                <input type="range" id="textSize" min="1" max="5" step="1" value="3" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                    <span>较小</span>
+                                    <span>中等</span>
+                                    <span>较大</span>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-row p-3 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <label for="autoTranslate" class="text-gray-700">自动翻译冰雪专业术语</label>
+                                    <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                                        <input type="checkbox" id="autoTranslate" checked class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                                        <label for="autoTranslate" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">启用后，机器人将自动翻译冰雪相关的专业术语</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 机器人声音选择 -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-800 mb-4">导览机器人声音</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="bg-white rounded-lg p-3 border border-gray-200 flex items-center">
+                                <input type="radio" id="voice1" name="robotVoice" class="w-4 h-4 text-blue-600 mr-3" checked>
+                                <label for="voice1" class="flex-1">
+                                    <div class="font-medium text-gray-800">小冰（女声）</div>
+                                    <div class="text-sm text-gray-500">标准普通话，清晰自然</div>
+                                </label>
+                                <button class="text-blue-500 px-2 py-1 text-sm" onclick="previewVoice('小冰')">
+                                    <i class="fas fa-play mr-1"></i>试听
+                                </button>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg p-3 border border-gray-200 flex items-center">
+                                <input type="radio" id="voice2" name="robotVoice" class="w-4 h-4 text-blue-600 mr-3">
+                                <label for="voice2" class="flex-1">
+                                    <div class="font-medium text-gray-800">小雪（女声）</div>
+                                    <div class="text-sm text-gray-500">东北口音，活泼可爱</div>
+                                </label>
+                                <button class="text-blue-500 px-2 py-1 text-sm" onclick="previewVoice('小雪')">
+                                    <i class="fas fa-play mr-1"></i>试听
+                                </button>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg p-3 border border-gray-200 flex items-center">
+                                <input type="radio" id="voice3" name="robotVoice" class="w-4 h-4 text-blue-600 mr-3">
+                                <label for="voice3" class="flex-1">
+                                    <div class="font-medium text-gray-800">大山（男声）</div>
+                                    <div class="text-sm text-gray-500">浑厚磁性，专业解说</div>
+                                </label>
+                                <button class="text-blue-500 px-2 py-1 text-sm" onclick="previewVoice('大山')">
+                                    <i class="fas fa-play mr-1"></i>试听
+                                </button>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg p-3 border border-gray-200 flex items-center">
+                                <input type="radio" id="voice4" name="robotVoice" class="w-4 h-4 text-blue-600 mr-3">
+                                <label for="voice4" class="flex-1">
+                                    <div class="font-medium text-gray-800">冰冰（儿童）</div>
+                                    <div class="text-sm text-gray-500">适合儿童，亲切友好</div>
+                                </label>
+                                <button class="text-blue-500 px-2 py-1 text-sm" onclick="previewVoice('冰冰')">
+                                    <i class="fas fa-play mr-1"></i>试听
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 保存按钮 -->
+                    <div class="flex justify-end">
+                        <button id="saveSettings" class="btn-primary px-6 py-3 rounded-lg text-white font-medium">
+                            <i class="fas fa-save mr-2"></i>保存设置
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 侧边栏信息 -->
+            <div class="lg:col-span-1">
+                <div class="language-container p-6 mb-6">
+                    <div class="robot-globe mb-6">
+                        <div class="globe-ring"></div>
+                        <div class="globe-ring"></div>
+                        <div class="globe-ring"></div>
+                        <img src="img/语言.jpg" alt="多语言机器人" class="w-full h-full rounded-full object-cover border-4 border-white">
+                    </div>
+                    
+                    <h3 class="text-xl font-semibold text-center text-gray-800 mb-4">多语言导览系统</h3>
+                    
+                    <p class="text-gray-600 mb-4">
+                        我们的导览机器人支持多达15种语言，通过先进的AI翻译技术，为您提供流畅自然的语音讲解服务。
+                    </p>
+                    
+                    <div class="bg-blue-50 rounded-lg p-4 mb-4">
+                        <div class="flex items-start">
+                            <i class="fas fa-lightbulb text-yellow-500 mt-1 mr-2"></i>
+                            <div>
+                                <h4 class="font-medium text-gray-800 mb-1">您知道吗？</h4>
+                                <p class="text-sm text-gray-600">
+                                    我们的机器人每天能够处理超过8,000次不同语言的导览请求，99.5%的游客对语言翻译准确度表示满意。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-medium text-gray-800 mb-2">语言覆盖情况</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">亚洲语言</span>
+                                    <span class="text-sm text-gray-600">100%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-600 h-2 rounded-full language-progress" style="width: 100%"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">欧洲语言</span>
+                                    <span class="text-sm text-gray-600">95%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-600 h-2 rounded-full language-progress" style="width: 95%"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">其他语言</span>
+                                    <span class="text-sm text-gray-600">80%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-600 h-2 rounded-full language-progress" style="width: 80%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 常见问题 -->
+                <div class="language-container p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">语言设置常见问题</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="border-b border-gray-200 pb-3">
+                            <h4 class="font-medium text-gray-800 mb-1 cursor-pointer" onclick="toggleFAQ(this)">
+                                <i class="fas fa-chevron-right mr-2 text-blue-500"></i>
+                                如何更改导览机器人的语言？
+                            </h4>
+                            <div class="text-sm text-gray-600 mt-1 hidden faq-answer">
+                                只需在此页面选择您希望使用的语言，然后点击"保存设置"按钮。系统将立即应用您的设置，机器人将使用所选语言进行导览讲解。
+                            </div>
+                        </div>
+                        
+                        <div class="border-b border-gray-200 pb-3">
+                            <h4 class="font-medium text-gray-800 mb-1 cursor-pointer" onclick="toggleFAQ(this)">
+                                <i class="fas fa-chevron-right mr-2 text-blue-500"></i>
+                                能否设置不同的语音和文本语言？
+                            </h4>
+                            <div class="text-sm text-gray-600 mt-1 hidden faq-answer">
+                                目前我们暂不支持语音和文本使用不同的语言，但我们正在开发这一功能，预计将在下一版本中推出。
+                            </div>
+                        </div>
+                        
+                        <div class="border-b border-gray-200 pb-3">
+                            <h4 class="font-medium text-gray-800 mb-1 cursor-pointer" onclick="toggleFAQ(this)">
+                                <i class="fas fa-chevron-right mr-2 text-blue-500"></i>
+                                如果我需要的语言不在列表中怎么办？
+                            </h4>
+                            <div class="text-sm text-gray-600 mt-1 hidden faq-answer">
+                                我们正在持续扩充语言库，如果您需要的语言未在列表中，请联系客服或在导览机器人上提出请求，我们将优先考虑添加该语言支持。
+                            </div>
+                        </div>
+                        
+                        <div class="pb-3">
+                            <h4 class="font-medium text-gray-800 mb-1 cursor-pointer" onclick="toggleFAQ(this)">
+                                <i class="fas fa-chevron-right mr-2 text-blue-500"></i>
+                                机器人的翻译准确度如何？
+                            </h4>
+                            <div class="text-sm text-gray-600 mt-1 hidden faq-answer">
+                                我们的机器人使用最新的神经网络翻译技术，针对冰雪专业术语进行了特别优化。翻译准确度在95%以上，并且我们的系统会不断学习和改进。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 语言体验示例 -->
+        <div class="language-container p-6 mb-10">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6 text-center">语言体验预览</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white rounded-lg overflow-hidden shadow-sm">
+                    <div class="bg-blue-500 text-white px-4 py-3 flex items-center">
+                        <span class="text-xl">🇨🇳</span>
+                        <h3 class="ml-2 font-medium">中文示例</h3>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-gray-800 mb-4">
+                            "欢迎来到冰雪大世界！这座大型冰雕是由来自哈尔滨的艺术家团队制作，融合了传统与现代艺术元素..."
+                        </p>
+                        <button class="text-blue-500 flex items-center" onclick="playDemo('Chinese')">
+                            <i class="fas fa-volume-up mr-2"></i>
+                            播放示例
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg overflow-hidden shadow-sm">
+                    <div class="bg-blue-500 text-white px-4 py-3 flex items-center">
+                        <span class="text-xl">🇺🇸</span>
+                        <h3 class="ml-2 font-medium">English Example</h3>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-gray-800 mb-4">
+                            "Welcome to the Ice and Snow World! This large ice sculpture was created by a team of artists from Harbin, combining traditional and modern art elements..."
+                        </p>
+                        <button class="text-blue-500 flex items-center" onclick="playDemo('English')">
+                            <i class="fas fa-volume-up mr-2"></i>
+                            Play Example
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg overflow-hidden shadow-sm">
+                    <div class="bg-blue-500 text-white px-4 py-3 flex items-center">
+                        <span class="text-xl">🇯🇵</span>
+                        <h3 class="ml-2 font-medium">日本語サンプル</h3>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-gray-800 mb-4">
+                            "氷と雪の世界へようこそ！この大きな氷の彫刻はハルビン出身の芸術家チームによって制作され、伝統的な要素とモダンアートの要素を組み合わせています..."
+                        </p>
+                        <button class="text-blue-500 flex items-center" onclick="playDemo('Japanese')">
+                            <i class="fas fa-volume-up mr-2"></i>
+                            サンプルを再生
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-8">
+                <p class="text-gray-600 text-sm">
+                    注：示例音频为模拟效果，实际机器人发音可能略有差异
+                </p>
+            </div>
+        </div>
+        
+        <!-- 更新日志 -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 mb-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">语言系统更新日志</h2>
+            
+            <div class="space-y-6">
+                <div class="flex">
+                    <div class="mr-4">
+                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                            <i class="fas fa-code text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg text-gray-800">版本 3.0.0 <span class="text-sm text-gray-500 font-normal">（2025年4月15日）</span></h3>
+                        <ul class="mt-2 space-y-1 text-gray-600">
+                            <li>• 添加印度语和葡萄牙语支持</li>
+                            <li>• 增强了冰雪专业术语翻译准确度</li>
+                            <li>• 优化语音合成引擎，提高语音自然度</li>
+                            <li>• 修复了某些小语种发音不准确的问题</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="flex">
+                    <div class="mr-4">
+                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                            <i class="fas fa-code-branch text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg text-gray-800">版本 2.0.0 <span class="text-sm text-gray-500 font-normal">（2025年1月20日）</span></h3>
+                        <ul class="mt-2 space-y-1 text-gray-600">
+                            <li>• 全新语音合成引擎，更自然的发音</li>
+                            <li>• 新增声音个性化定制选项</li>
+                            <li>• 支持实时翻译对话功能</li>
+                            <li>• 添加了儿童友好型语音模式</li>
+                            <li>• 扩展语言支持至15种</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="flex">
+                    <div class="mr-4">
+                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                            <i class="fas fa-history text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg text-gray-800">版本 1.0.0 <span class="text-sm text-gray-500 font-normal">（2024年11月5日）</span></h3>
+                        <ul class="mt-2 space-y-1 text-gray-600">
+                            <li>• 提升了翻译API响应速度</li>
+                            <li>• 优化了小语种翻译质量</li>
+                            <li>• 修复了韩语显示问题</li>
+                            <li>• 增强了术语库，添加冰雪专业词汇</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p class="mb-2">© 2025 天枢竹陶AI系统 版权所有</p>
+            <p class="text-gray-400 text-sm">智能导览 · 精准规划 · 环保清洁</p>
+        </div>
+    </footer>
+
+    <script>
+        // 移动端菜单控制
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.remove('hidden');
+            } else {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+        
+        // 检查用户登录状态并更新按钮
+        function checkAuthStatus() {
+            const authButton = document.getElementById('authButton');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            
+            if (currentUser && currentUser.loggedIn) {
+                authButton.innerHTML = `<i class="fas fa-user-circle mr-2"></i>${currentUser.username}`;
+                authButton.href = "#";
+                authButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (confirm('确定要退出登录吗？')) {
+                        localStorage.removeItem('currentUser');
+                        window.location.reload();
+                    }
+                });
+            }
+        }
+        
+        // 语言卡片选择
+        const languageCards = document.querySelectorAll('.language-card[data-lang]');
+        let selectedLanguage = 'zh-CN';
+        
+        languageCards.forEach(card => {
+            card.addEventListener('click', function() {
+                // 移除所有卡片的active类
+                languageCards.forEach(c => c.classList.remove('active'));
+                
+                // 添加当前卡片的active类
+                this.classList.add('active');
+                
+                // 存储选中的语言
+                selectedLanguage = this.getAttribute('data-lang');
+                
+                // 更新示例文本
+                updatePreview();
+            });
+        });
+        
+        // 语音速度控制
+        const speechSpeed = document.getElementById('speechSpeed');
+        const speechSpeedValue = document.getElementById('speechSpeedValue');
+        const speedValues = ['非常慢', '较慢', '正常', '较快', '非常快'];
+        
+        speechSpeed.addEventListener('input', function() {
+            speechSpeedValue.textContent = speedValues[this.value - 1];
+        });
+        
+        // 文本大小控制
+        const textSize = document.getElementById('textSize');
+        const textSizeValue = document.getElementById('textSizeValue');
+        const sizeValues = ['极小', '较小', '中等', '较大', '极大'];
+        
+        textSize.addEventListener('input', function() {
+            textSizeValue.textContent = sizeValues[this.value - 1];
+        });
+        
+        // 保存设置
+        document.getElementById('saveSettings').addEventListener('click', function() {
+            // 收集设置
+            const settings = {
+                language: selectedLanguage,
+                speechSpeed: speechSpeed.value,
+                textSize: textSize.value,
+                autoTranslate: document.getElementById('autoTranslate').checked,
+                voice: document.querySelector('input[name="robotVoice"]:checked').id
+            };
+            
+            // 在真实应用中，这里会把设置保存到服务器
+            // 目前我们只保存到 localStorage 作为演示
+            localStorage.setItem('languageSettings', JSON.stringify(settings));
+            
+            // 显示成功消息
+            const successMessage = document.getElementById('successMessage');
+            successMessage.style.display = 'block';
+            
+            // 3秒后隐藏成功消息
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 3000);
+            
+            // 创建元素上下弹跳动画
+            createBouncingElements();
+        });
+        
+        // 更新预览文本函数（实际中会根据选择的语言切换文本）
+        function updatePreview() {
+            // 这里应该从API获取不同语言的预览文本
+            console.log('语言已切换为：' + selectedLanguage);
+        }
+        
+        // 创建粒子效果
+        function createParticles() {
+            const particleContainer = document.body;
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // 随机位置和大小
+                const size = Math.random() * 3 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.opacity = Math.random() * 0.5 + 0.3;
+                
+                // 初始位置
+                const xPos = Math.random() * window.innerWidth;
+                const yPos = Math.random() * window.innerHeight;
+                particle.style.left = `${xPos}px`;
+                particle.style.top = `${yPos}px`;
+                
+                particleContainer.appendChild(particle);
+                
+                // 粒子动画
+                animateParticle(particle);
+            }
+        }
+        
+        function animateParticle(particle) {
+            const duration = Math.random() * 15000 + 10000;
+            const xPos = Math.random() * window.innerWidth;
+            const yPos = Math.random() * window.innerHeight;
+            
+            particle.animate([
+                { transform: `translate(${particle.style.left}, ${particle.style.top})` },
+                { transform: `translate(${xPos}px, ${yPos}px)` }
+            ], {
+                duration: duration,
+                easing: 'ease-in-out'
+            }).onfinish = () => {
+                particle.style.left = `${xPos}px`;
+                particle.style.top = `${yPos}px`;
+                animateParticle(particle);
+            };
+        }
+        
+        // 加载保存的设置
+        function loadSavedSettings() {
+            const savedSettings = JSON.parse(localStorage.getItem('languageSettings'));
+            
+            if (savedSettings) {
+                // 设置语言
+                languageCards.forEach(card => {
+                    if (card.getAttribute('data-lang') === savedSettings.language) {
+                        card.classList.add('active');
+                        selectedLanguage = savedSettings.language;
+                    } else {
+                        card.classList.remove('active');
+                    }
+                });
+                
+                // 设置语音速度
+                speechSpeed.value = savedSettings.speechSpeed;
+                speechSpeedValue.textContent = speedValues[savedSettings.speechSpeed - 1];
+                
+                // 设置文本大小
+                textSize.value = savedSettings.textSize;
+                textSizeValue.textContent = sizeValues[savedSettings.textSize - 1];
+                
+                // 设置自动翻译
+                document.getElementById('autoTranslate').checked = savedSettings.autoTranslate;
+                
+                // 设置声音
+                if (savedSettings.voice) {
+                    document.getElementById(savedSettings.voice).checked = true;
+                }
+            }
+        }
+        
+        // 语音试听
+        function previewVoice(voiceName) {
+            alert(`正在播放${voiceName}的语音示例...\n\n（实际产品中会播放真实语音）`);
+        }
+        
+        // 播放示例音频
+        function playDemo(language) {
+            alert(`正在播放${language}示例音频...\n\n（实际产品中会播放真实语音）`);
+        }
+        
+        // 切换FAQ答案显示
+        function toggleFAQ(element) {
+            const answer = element.nextElementSibling;
+            const icon = element.querySelector('i');
+            
+            if (answer.classList.contains('hidden')) {
+                answer.classList.remove('hidden');
+                icon.classList.remove('fa-chevron-right');
+                icon.classList.add('fa-chevron-down');
+            } else {
+                answer.classList.add('hidden');
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-right');
+            }
+        }
+        
+        // 创建弹跳动画元素
+        function createBouncingElements() {
+            // 给机器人图像添加弹跳效果
+            const robotGlobe = document.querySelector('.robot-globe');
+            robotGlobe.classList.add('element-bounce');
+            
+            // 3秒后移除动画
+            setTimeout(() => {
+                robotGlobe.classList.remove('element-bounce');
+            }, 3000);
+        }
+        
+        // 切换样式表 (多语言支持的CSS变化)
+        function changeStyleForLanguage(lang) {
+            // 此函数在实际应用中会根据语言更改某些样式
+            // 例如为右到左语言调整布局方向
+            console.log(`切换到${lang}的样式`);
+        }
+        
+        // 添加语言百分比动画
+        function animateLanguageProgress() {
+            const progressBars = document.querySelectorAll('.language-progress');
+            
+            progressBars.forEach(bar => {
+                const targetWidth = bar.style.width;
+                bar.style.width = '0%';
+                
+                setTimeout(() => {
+                    bar.style.width = targetWidth;
+                }, 200);
+            });
+        }
+        
+        // 页面加载完成后执行
+        window.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            checkAuthStatus();
+            loadSavedSettings();
+            animateLanguageProgress();
+            
+            // 为开关按钮添加样式
+            const toggleCheckbox = document.querySelector('.toggle-checkbox');
+            const toggleLabel = document.querySelector('.toggle-label');
+            
+            if (toggleCheckbox && toggleLabel) {
+                toggleCheckbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        toggleLabel.style.backgroundColor = '#3b82f6';
+                    } else {
+                        toggleLabel.style.backgroundColor = '#d1d5db';
+                    }
+                });
+                
+                // 初始状态
+                if (toggleCheckbox.checked) {
+                    toggleLabel.style.backgroundColor = '#3b82f6';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

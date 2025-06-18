@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>全域畅游——基于跨模态学习的Roban智能服务机器人</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1e40af;
+            --secondary-color: #60a5fa;
+            --accent-color: #93c5fd;
+            --dark-color: #1e293b;
+            --light-color: #f0f9ff;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #dbeafe, #eff6ff, #e0f2fe);
+            min-height: 100vh;
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            box-shadow: 0 4px 6px rgba(30, 64, 175, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(30, 64, 175, 0.3);
+        }
+        
+        .feedback-container {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(30, 64, 175, 0.2);
+            overflow: hidden;
+        }
+        
+        .rating-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .rating-star {
+            font-size: 2.5rem;
+            color: #cbd5e0;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            margin: 0 0.25rem;
+        }
+        
+        .rating-star.active {
+            color: #ecc94b;
+        }
+        
+        .rating-star:hover {
+            transform: scale(1.1);
+        }
+        
+        .feedback-category {
+            background: white;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .feedback-category:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feedback-category.selected {
+            border-color: #3b82f6;
+            background-color: rgba(219, 234, 254, 0.5);
+        }
+        
+        .feedback-form-control {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .feedback-form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+        }
+        
+        .feedback-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .feedback-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: rgba(96, 165, 250, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        .feedback-tag {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            border-radius: 9999px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        .feedback-tag:hover {
+            background-color: #bae6fd;
+        }
+        
+        .success-message {
+            background-color: rgba(52, 211, 153, 0.1);
+            border-left: 4px solid #34D399;
+            padding: 1rem;
+            color: #065f46;
+            margin-bottom: 1rem;
+            animation: fadeIn 0.5s ease-in-out;
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .robot-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-10px) rotate(3deg);
+            }
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #3b82f6;
+            border-radius: 2px;
+            opacity: 0.8;
+            animation: confetti-fall linear infinite;
+        }
+        
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+            }
+        }
+    </style>
+</head>
+<body class="pt-16 pb-12">
+    <nav class="bg-white shadow-md fixed w-full top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-robot text-2xl text-blue-600"></i>
+                <span class="text-xl font-bold text-gray-800">全域畅游——基于跨模态学习的Roban智能服务机器人</span>
+            </div>
+            
+            <div class="hidden md:flex space-x-6">
+                <a href="index.html" class="nav-link text-gray-700 hover:text-blue-600">首页</a>
+                <a href="map.html" class="nav-link text-gray-700 hover:text-blue-600">路径规划</a>
+                <a href="feedback.html" class="nav-link text-blue-600 font-medium">用户反馈</a>
+                <a href="weather.html" class="nav-link text-gray-700 hover:text-blue-600">天气信息</a>
+                <a href="language.html" class="nav-link text-gray-700 hover:text-blue-600">语言设置</a>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <a href="login.html" id="authButton" class="btn-primary px-4 py-2 rounded-md text-white text-sm font-medium">
+                    登录 / 注册
+                </a>
+                <button class="md:hidden text-gray-700 focus:outline-none" id="menuToggle">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 移动端菜单 -->
+        <div id="mobileMenu" class="hidden bg-white w-full py-3 px-4 shadow-lg md:hidden">
+            <div class="flex flex-col space-y-3">
+                <a href="index.html" class="text-gray-700 hover:text-blue-600 py-2">首页</a>
+                <a href="map.html" class="text-gray-700 hover:text-blue-600 py-2">路径规划</a>
+                <a href="feedback.html" class="text-blue-600 font-medium py-2">用户反馈</a>
+                <a href="weather.html" class="text-gray-700 hover:text-blue-600 py-2">天气信息</a>
+                <a href="language.html" class="text-gray-700 hover:text-blue-600 py-2">语言设置</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">用户反馈与评价</h1>
+        <p class="text-lg text-gray-600 mb-8">您的意见是我们不断优化导览机器人服务的宝贵资源</p>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <!-- 提交反馈表单 -->
+            <div class="lg:col-span-2">
+                <div class="feedback-container p-6">
+                    <div id="successMessage" class="success-message">
+                        <p><i class="fas fa-check-circle mr-2"></i>感谢您的反馈！我们将认真考虑您的建议。</p>
+                    </div>
+                    
+                    <form id="feedbackForm">
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-6">提交您的反馈</h2>
+                        
+                        <!-- 星级评分 -->
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-medium mb-3 text-center">总体评价</label>
+                            <div class="rating-container" id="ratingStars">
+                                <span class="rating-star" data-rating="1"><i class="fas fa-star"></i></span>
+                                <span class="rating-star" data-rating="2"><i class="fas fa-star"></i></span>
+                                <span class="rating-star" data-rating="3"><i class="fas fa-star"></i></span>
+                                <span class="rating-star" data-rating="4"><i class="fas fa-star"></i></span>
+                                <span class="rating-star" data-rating="5"><i class="fas fa-star"></i></span>
+                            </div>
+                            <p class="text-center text-gray-500 mt-2" id="ratingText">点击星星进行评分</p>
+                        </div>
+                        
+                        <!-- 反馈类别 -->
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-medium mb-3">反馈类别</label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div class="feedback-category p-3 text-center cursor-pointer" data-category="guide">
+                                    <i class="fas fa-microphone-alt text-blue-500 text-2xl mb-2"></i>
+                                    <p class="text-sm">导览讲解</p>
+                                </div>
+                                <div class="feedback-category p-3 text-center cursor-pointer" data-category="route">
+                                    <i class="fas fa-route text-blue-500 text-2xl mb-2"></i>
+                                    <p class="text-sm">路径规划</p>
+                                </div>
+                                <div class="feedback-category p-3 text-center cursor-pointer" data-category="clean">
+                                    <i class="fas fa-trash-alt text-blue-500 text-2xl mb-2"></i>
+                                    <p class="text-sm">垃圾清理</p>
+                                </div>
+                                <div class="feedback-category p-3 text-center cursor-pointer" data-category="other">
+                                    <i class="fas fa-plus-circle text-blue-500 text-2xl mb-2"></i>
+                                    <p class="text-sm">其他建议</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 机器人ID -->
+                        <div class="mb-6">
+                            <label for="robotId" class="block text-gray-700 font-medium mb-2">机器人ID (可选)</label>
+                            <input type="text" id="robotId" name="robotId" placeholder="例如: Aurora-X1" class="feedback-form-control bg-white border border-gray-300 rounded-lg px-4 py-3 w-full focus:outline-none">
+                            <p class="text-sm text-gray-500 mt-1">您可以在机器人底部或屏幕上找到ID</p>
+                        </div>
+                        
+                        <!-- 反馈标签 -->
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-medium mb-2">反馈标签</label>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="feedback-tag cursor-pointer" data-tag="bug">问题反馈</span>
+                                <span class="feedback-tag cursor-pointer" data-tag="suggestion">功能建议</span>
+                                <span class="feedback-tag cursor-pointer" data-tag="experience">使用体验</span>
+                                <span class="feedback-tag cursor-pointer" data-tag="compliment">表扬</span>
+                                <span class="feedback-tag cursor-pointer" data-tag="complaint">投诉</span>
+                            </div>
+                            <input type="hidden" id="selectedTags" name="selectedTags" value="">
+                        </div>
+                        
+                        <!-- 详细反馈 -->
+                        <div class="mb-6">
+                            <label for="feedbackDetails" class="block text-gray-700 font-medium mb-2">详细反馈</label>
+                            <textarea id="feedbackDetails" name="feedbackDetails" rows="5" placeholder="请描述您的体验或建议..." class="feedback-form-control bg-white border border-gray-300 rounded-lg px-4 py-3 w-full focus:outline-none resize-none"></textarea>
+                        </div>
+                        
+                        <!-- 联系方式 -->
+                        <div class="mb-6">
+                            <label for="contactInfo" class="block text-gray-700 font-medium mb-2">联系方式 (可选)</label>
+                            <input type="text" id="contactInfo" name="contactInfo" placeholder="电子邮箱或电话号码" class="feedback-form-control bg-white border border-gray-300 rounded-lg px-4 py-3 w-full focus:outline-none">
+                            <p class="text-sm text-gray-500 mt-1">如需我们回复，请留下联系方式</p>
+                        </div>
+                        
+                        <!-- 图片上传 -->
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-medium mb-2">上传图片 (可选)</label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer" id="dropArea">
+                                <i class="fas fa-cloud-upload-alt text-blue-500 text-2xl mb-2"></i>
+                                <p class="text-gray-600">拖拽或点击上传图片</p>
+                                <p class="text-gray-500 text-xs mt-1">最多3张，每张不超过2MB</p>
+                            </div>
+                            <div id="imagePreviewContainer" class="flex mt-2 flex-wrap gap-2"></div>
+                            <input type="file" id="imageUpload" name="imageUpload" accept="image/*" multiple class="hidden">
+                        </div>
+                        
+                        <!-- 隐私政策 -->
+                        <div class="mb-6">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="agreePrivacy" class="w-4 h-4 text-blue-600" required>
+                                <label for="agreePrivacy" class="ml-2 text-gray-600 text-sm">
+                                    我同意根据
+                                    <a href="#" class="text-blue-600 hover:underline">隐私政策</a>
+                                    处理我的反馈信息
+                                </label>
+                            </div>
+                            <p id="privacyError" class="text-red-500 text-xs mt-1 hidden">请同意隐私政策</p>
+                        </div>
+                        
+                        <button type="submit" class="btn-primary w-full py-3 rounded-lg text-white font-medium">
+                            提交反馈
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- 侧边栏 -->
+            <div class="lg:col-span-1">
+                <div class="feedback-container p-6 mb-6">
+                    <div class="flex justify-center mb-6">
+                        <div class="w-40 h-40 robot-animation">
+                            <img src="img/用户服务照片.jpg" alt="导览机器人" class="rounded-full border-4 border-white shadow-lg">
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mb-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">帮助我们变得更好</h3>
+                        <p class="text-gray-600">您的每一条反馈都会被记录并认真分析，帮助我们不断完善服务</p>
+                    </div>
+                    
+                    <div class="bg-blue-50 rounded-lg p-4 mb-4">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                            <h4 class="font-medium text-gray-800">您知道吗？</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">
+                            我们的导览机器人每天能处理超过200条用户反馈，并在每周的系统更新中应用改进建议。
+                        </p>
+                    </div>
+                    
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-chart-bar text-blue-500 mr-2"></i>
+                            <h4 class="font-medium text-gray-800">用户满意度</h4>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: 94%"></div>
+                        </div>
+                        <p class="text-right text-xs text-gray-600">94% 的用户对我们的服务表示满意</p>
+                    </div>
+                </div>
+                
+                <!-- 最近反馈 -->
+                <div class="feedback-container p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">最近反馈</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="feedback-card p-4">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2">
+                                        <span class="font-medium text-blue-600">Z</span>
+                                    </div>
+                                    <span class="font-medium text-gray-800">张先生</span>
+                                </div>
+                                <div class="text-yellow-500">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm">机器人的导览非常专业，特别是对冰雕历史的讲解很有深度，让我学到了很多知识！</p>
+                            <div class="mt-2 text-xs text-gray-500">2025-05-05</div>
+                        </div>
+                        
+                        <div class="feedback-card p-4">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-2">
+                                        <span class="font-medium text-green-600">L</span>
+                                    </div>
+                                    <span class="font-medium text-gray-800">李女士</span>
+                                </div>
+                                <div class="text-yellow-500">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm">带孩子来玩，机器人的路线规划很合理，避开了拥挤区域，体验很好！可惜电池续航稍短。</p>
+                            <div class="mt-2 text-xs text-gray-500">2025-05-04</div>
+                        </div>
+                        
+                        <div class="feedback-card p-4">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center mr-2">
+                                        <span class="font-medium text-purple-600">W</span>
+                                    </div>
+                                    <span class="font-medium text-gray-800">王同学</span>
+                                </div>
+                                <div class="text-yellow-500">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm">拍照功能非常棒，机器人会自动找角度，建议多增加一些互动游戏环节。</p>
+                            <div class="mt-2 text-xs text-gray-500">2025-05-03</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 反馈统计数据 -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 mb-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">用户反馈统计</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- 功能评分 -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">功能评分</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-700">导览讲解</span>
+                                <span class="text-sm font-medium text-gray-700">4.7</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: 94%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-700">路径规划</span>
+                                <span class="text-sm font-medium text-gray-700">4.5</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: 90%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-700">垃圾清理</span>
+                                <span class="text-sm font-medium text-gray-700">4.3</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: 86%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-700">交互体验</span>
+                                <span class="text-sm font-medium text-gray-700">4.8</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: 96%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 改进建议类别 -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">建议类别分布</h3>
+                    
+                    <div class="relative pt-1">
+                        <div class="mb-4">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                                <span class="text-sm text-gray-700">功能优化 (48%)</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                <div class="bg-blue-500 h-2 rounded-full" style="width: 48%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                                <span class="text-sm text-gray-700">新功能请求 (26%)</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                <div class="bg-green-500 h-2 rounded-full" style="width: 26%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                                <span class="text-sm text-gray-700">问题反馈 (16%)</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                <div class="bg-yellow-500 h-2 rounded-full" style="width: 16%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                                <span class="text-sm text-gray-700">其他反馈 (10%)</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                <div class="bg-red-500 h-2 rounded-full" style="width: 10%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 用户满意度趋势 -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">满意度趋势</h3>
+                    
+                    <div class="h-48 flex items-end space-x-2">
+                        <div class="relative flex-1 h-full flex flex-col justify-end">
+                            <div class="h-[70%] bg-blue-200 hover:bg-blue-300 transition-colors rounded-t-md"></div>
+                            <div class="absolute -top-6 w-full text-center text-xs text-gray-600">1月</div>
+                            <div class="absolute -bottom-6 w-full text-center text-xs text-gray-600">3.5</div>
+                        </div>
+                        
+                        <div class="relative flex-1 h-full flex flex-col justify-end">
+                            <div class="h-[74%] bg-blue-300 hover:bg-blue-400 transition-colors rounded-t-md"></div>
+                            <div class="absolute -top-6 w-full text-center text-xs text-gray-600">2月</div>
+                            <div class="absolute -bottom-6 w-full text-center text-xs text-gray-600">3.7</div>
+                        </div>
+                        
+                        <div class="relative flex-1 h-full flex flex-col justify-end">
+                            <div class="h-[80%] bg-blue-400 hover:bg-blue-500 transition-colors rounded-t-md"></div>
+                            <div class="absolute -top-6 w-full text-center text-xs text-gray-600">3月</div>
+                            <div class="absolute -bottom-6 w-full text-center text-xs text-gray-600">4.0</div>
+                        </div>
+                        
+                        <div class="relative flex-1 h-full flex flex-col justify-end">
+                            <div class="h-[84%] bg-blue-500 hover:bg-blue-600 transition-colors rounded-t-md"></div>
+                            <div class="absolute -top-6 w-full text-center text-xs text-gray-600">4月</div>
+                            <div class="absolute -bottom-6 w-full text-center text-xs text-gray-600">4.2</div>
+                        </div>
+                        
+                        <div class="relative flex-1 h-full flex flex-col justify-end">
+                            <div class="h-[94%] bg-blue-600 hover:bg-blue-700 transition-colors rounded-t-md"></div>
+                            <div class="absolute -top-6 w-full text-center text-xs text-gray-600">5月</div>
+                            <div class="absolute -bottom-6 w-full text-center text-xs text-gray-600">4.7</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="text-center text-gray-600 text-sm">
+                数据来源：最近6个月共收集的2,547条用户反馈
+                <a href="#" class="text-blue-600 hover:underline">查看完整报告 <i class="fas fa-external-link-alt text-xs"></i></a>
+            </p>
+        </div>
+        
+        <!-- 常见问题 -->
+        <div class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">常见问题解答</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="feedback-card p-5">
+                    <h3 class="font-semibold text-lg text-gray-800 mb-3">如何预约导览机器人？</h3>
+                    <p class="text-gray-600">
+                        您可以在冰雪大世界主入口处的服务台预约，或通过官方网站/APP提前预订。机器人数量有限，建议提前1-2天预约。
+                    </p>
+                </div>
+                
+                <div class="feedback-card p-5">
+                    <h3 class="font-semibold text-lg text-gray-800 mb-3">机器人讲解支持哪些语言？</h3>
+                    <p class="text-gray-600">
+                        目前支持中文（普通话及粤语）、英语、日语、韩语、俄语等多种语言，可在使用前进行设置切换。
+                    </p>
+                </div>
+                
+                <div class="feedback-card p-5">
+                    <h3 class="font-semibold text-lg text-gray-800 mb-3">如果使用过程中机器人出现问题怎么办？</h3>
+                    <p class="text-gray-600">
+                        请联系园区内的工作人员，或拨打机器人背面贴有的服务热线400-123-4567。我们会安排技术人员尽快处理。
+                    </p>
+                </div>
+                
+                <div class="feedback-card p-5">
+                    <h3 class="font-semibold text-lg text-gray-800 mb-3">机器人导览服务是否需要额外付费？</h3>
+                    <p class="text-gray-600">
+                        基础导览服务包含在门票价格内，全程摄影、个性化讲解等高级功能需支付额外费用，详情请咨询服务台。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p class="mb-2">© 2025 天枢竹陶AI系统 版权所有</p>
+            <p class="text-gray-400 text-sm">智能导览 · 精准规划 · 环保清洁</p>
+        </div>
+    </footer>
+
+    <script>
+        // 移动端菜单控制
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.remove('hidden');
+            } else {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+        
+        // 检查用户登录状态并更新按钮
+        function checkAuthStatus() {
+            const authButton = document.getElementById('authButton');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            
+            if (currentUser && currentUser.loggedIn) {
+                authButton.innerHTML = `<i class="fas fa-user-circle mr-2"></i>${currentUser.username}`;
+                authButton.href = "#";
+                authButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (confirm('确定要退出登录吗？')) {
+                        localStorage.removeItem('currentUser');
+                        window.location.reload();
+                    }
+                });
+            }
+        }
+        
+        // 星级评分
+        const ratingStars = document.querySelectorAll('.rating-star');
+        const ratingText = document.getElementById('ratingText');
+        const ratingTexts = [
+            '非常不满意',
+            '不太满意',
+            '一般',
+            '满意',
+            '非常满意'
+        ];
+        let currentRating = 0;
+        
+        ratingStars.forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                currentRating = rating;
+                
+                // 更新星星显示
+                ratingStars.forEach((s, index) => {
+                    if (index < rating) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
+                
+                // 更新文本显示
+                ratingText.textContent = ratingTexts[rating - 1];
+            });
+            
+            star.addEventListener('mouseover', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                
+                // 临时更新星星显示
+                ratingStars.forEach((s, index) => {
+                    if (index < rating) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
+                
+                // 临时更新文本
+                ratingText.textContent = ratingTexts[rating - 1];
+            });
+            
+            star.addEventListener('mouseout', function() {
+                // 恢复到当前评分状态
+                ratingStars.forEach((s, index) => {
+                    if (index < currentRating) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
+                
+                // 恢复文本
+                if (currentRating > 0) {
+                    ratingText.textContent = ratingTexts[currentRating - 1];
+                } else {
+                    ratingText.textContent = '点击星星进行评分';
+                }
+            });
+        });
+        
+        // 反馈类别选择
+        const feedbackCategories = document.querySelectorAll('.feedback-category');
+        let selectedCategory = '';
+        
+        feedbackCategories.forEach(category => {
+            category.addEventListener('click', function() {
+                const categoryType = this.getAttribute('data-category');
+                
+                // 取消所有已选类别的高亮
+                feedbackCategories.forEach(c => c.classList.remove('selected'));
+                
+                // 高亮当前选中类别
+                this.classList.add('selected');
+                selectedCategory = categoryType;
+            });
+        });
+        
+        // 反馈标签选择
+        const feedbackTags = document.querySelectorAll('.feedback-tag');
+        const selectedTagsInput = document.getElementById('selectedTags');
+        const selectedTagsArray = [];
+        
+        feedbackTags.forEach(tag => {
+            tag.addEventListener('click', function() {
+                const tagType = this.getAttribute('data-tag');
+                
+                if (this.classList.contains('bg-blue-500')) {
+                    // 取消选中
+                    this.classList.remove('bg-blue-500', 'text-white');
+                    this.classList.add('bg-blue-100', 'text-blue-600');
+                    
+                    // 从数组中移除标签
+                    const index = selectedTagsArray.indexOf(tagType);
+                    if (index > -1) {
+                        selectedTagsArray.splice(index, 1);
+                    }
+                } else {
+                    // 选中标签
+                    this.classList.remove('bg-blue-100', 'text-blue-600');
+                    this.classList.add('bg-blue-500', 'text-white');
+                    
+                    // 添加标签到数组
+                    if (!selectedTagsArray.includes(tagType)) {
+                        selectedTagsArray.push(tagType);
+                    }
+                }
+                
+                // 更新隐藏输入字段
+                selectedTagsInput.value = selectedTagsArray.join(',');
+            });
+        });
+        
+        // 图片上传功能
+        const dropArea = document.getElementById('dropArea');
+        const imageUpload = document.getElementById('imageUpload');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const maxFiles = 3;
+        const maxFileSize = 2 * 1024 * 1024; // 2MB
+        let uploadedFiles = [];
+        
+        dropArea.addEventListener('click', () => {
+            imageUpload.click();
+        });
+        
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.classList.add('bg-gray-100');
+        });
+        
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('bg-gray-100');
+        });
+        
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('bg-gray-100');
+            
+            if (e.dataTransfer.files.length > 0) {
+                handleFiles(e.dataTransfer.files);
+            }
+        });
+        
+        imageUpload.addEventListener('change', () => {
+            handleFiles(imageUpload.files);
+        });
+        
+        function handleFiles(files) {
+            if (uploadedFiles.length >= maxFiles) {
+                alert(`最多只能上传${maxFiles}张图片`);
+                return;
+            }
+            
+            for (let i = 0; i < files.length; i++) {
+                if (uploadedFiles.length >= maxFiles) break;
+                
+                const file = files[i];
+                
+                // 检查文件类型
+                if (!file.type.match('image.*')) {
+                    alert('请上传图片文件');
+                    continue;
+                }
+                
+                // 检查文件大小
+                if (file.size > maxFileSize) {
+                    alert(`文件大小不能超过2MB: ${file.name}`);
+                    continue;
+                }
+                
+                uploadedFiles.push(file);
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const preview = document.createElement('div');
+                    preview.className = 'relative';
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'w-20 h-20 object-cover rounded-md border border-gray-300';
+                    
+                    const removeBtn = document.createElement('button');
+                    removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    removeBtn.className = 'absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center -mt-2 -mr-2';
+                    removeBtn.onclick = function() {
+                        const index = uploadedFiles.indexOf(file);
+                        if (index > -1) {
+                            uploadedFiles.splice(index, 1);
+                            preview.remove();
+                        }
+                    };
+                    
+                    preview.appendChild(img);
+                    preview.appendChild(removeBtn);
+                    imagePreviewContainer.appendChild(preview);
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // 表单提交
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 验证表单
+            if (!currentRating) {
+                alert('请为您的体验评分');
+                return;
+            }
+            
+            if (!selectedCategory) {
+                alert('请选择反馈类别');
+                return;
+            }
+            
+            const feedbackDetails = document.getElementById('feedbackDetails').value.trim();
+            if (!feedbackDetails) {
+                alert('请填写详细反馈');
+                return;
+            }
+            
+            const agreePrivacy = document.getElementById('agreePrivacy');
+            const privacyError = document.getElementById('privacyError');
+            
+            if (!agreePrivacy.checked) {
+                privacyError.classList.remove('hidden');
+                return;
+            }
+            
+            // 收集表单数据
+            const feedbackData = {
+                rating: currentRating,
+                category: selectedCategory,
+                robotId: document.getElementById('robotId').value.trim(),
+                tags: selectedTagsArray,
+                details: feedbackDetails,
+                contactInfo: document.getElementById('contactInfo').value.trim(),
+                date: new Date().toISOString(),
+                images: uploadedFiles.map(file => file.name) // 在实际应用中会上传文件到服务器
+            };
+            
+            // 将反馈存储到 localStorage (在实际应用中会发送到后台)
+            const feedbacks = JSON.parse(localStorage.getItem('iceworldFeedbacks')) || [];
+            feedbacks.push(feedbackData);
+            localStorage.setItem('iceworldFeedbacks', JSON.stringify(feedbacks));
+            
+            // 显示成功消息
+            document.getElementById('successMessage').style.display = 'block';
+            
+            // 创建庆祝彩屑效果
+            createConfetti();
+            
+            // 重置表单
+            setTimeout(() => {
+                resetForm();
+                document.getElementById('successMessage').style.display = 'none';
+            }, 3000);
+        });
+        
+        function resetForm() {
+            // 重置评分
+            currentRating = 0;
+            ratingStars.forEach(s => s.classList.remove('active'));
+            ratingText.textContent = '点击星星进行评分';
+            
+            // 重置类别选择
+            feedbackCategories.forEach(c => c.classList.remove('selected'));
+            selectedCategory = '';
+            
+            // 重置标签
+            feedbackTags.forEach(tag => {
+                tag.classList.remove('bg-blue-500', 'text-white');
+                tag.classList.add('bg-blue-100', 'text-blue-600');
+            });
+            selectedTagsArray.length = 0;
+            selectedTagsInput.value = '';
+            
+            // 重置图片上传
+            imagePreviewContainer.innerHTML = '';
+            uploadedFiles = [];
+            
+            // 重置其他输入
+            document.getElementById('robotId').value = '';
+            document.getElementById('feedbackDetails').value = '';
+            document.getElementById('contactInfo').value = '';
+            document.getElementById('agreePrivacy').checked = false;
+            document.getElementById('privacyError').classList.add('hidden');
+        }
+        
+        // 创建彩屑效果
+        function createConfetti() {
+            const container = document.body;
+            const confettiCount = 100;
+            const colors = ['#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE', '#DBEAFE'];
+            
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                
+                // 随机位置、颜色和形状
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = Math.random() * 8 + 6 + 'px';
+                confetti.style.height = Math.random() * 4 + 4 + 'px';
+                confetti.style.opacity = Math.random() * 0.7 + 0.3;
+                
+                // 随机动画参数
+                const duration = Math.random() * 3 + 2;
+                confetti.style.animationDuration = duration + 's';
+                
+                container.appendChild(confetti);
+                
+                // 动画结束后移除
+                setTimeout(() => {
+                    confetti.remove();
+                }, duration * 1000);
+            }
+        }
+        
+        // 创建粒子效果
+        function createParticles() {
+            const particleContainer = document.body;
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // 随机位置和大小
+                const size = Math.random() * 3 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.opacity = Math.random() * 0.5 + 0.3;
+                
+                // 初始位置
+                const xPos = Math.random() * window.innerWidth;
+                const yPos = Math.random() * window.innerHeight;
+                particle.style.left = `${xPos}px`;
+                particle.style.top = `${yPos}px`;
+                
+                particleContainer.appendChild(particle);
+                
+                // 粒子动画
+                animateParticle(particle);
+            }
+        }
+        
+        function animateParticle(particle) {
+            const duration = Math.random() * 15000 + 10000;
+            const xPos = Math.random() * window.innerWidth;
+            const yPos = Math.random() * window.innerHeight;
+            
+            particle.animate([
+                { transform: `translate(${particle.style.left}, ${particle.style.top})` },
+                { transform: `translate(${xPos}px, ${yPos}px)` }
+            ], {
+                duration: duration,
+                easing: 'ease-in-out'
+            }).onfinish = () => {
+                particle.style.left = `${xPos}px`;
+                particle.style.top = `${yPos}px`;
+                animateParticle(particle);
+            };
+        }
+        
+        // 页面加载完成后执行
+        window.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            checkAuthStatus();
+        });
+    </script>
+</body>
+</html>
+

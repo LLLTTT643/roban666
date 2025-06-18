@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>全域畅游——基于跨模态学习的Roban智能服务机器人</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1e40af;
+            --secondary-color: #60a5fa;
+            --accent-color: #93c5fd;
+            --dark-color: #1e293b;
+            --light-color: #f0f9ff;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #dbeafe, #eff6ff, #e0f2fe);
+            min-height: 100vh;
+        }
+        
+        .auth-container {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(30, 64, 175, 0.2);
+            overflow: hidden;
+        }
+        
+        .auth-header {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        }
+        
+        .tab {
+            transition: all 0.3s ease;
+        }
+        
+        .tab-active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .form-input {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .form-input:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            box-shadow: 0 4px 6px rgba(30, 64, 175, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(30, 64, 175, 0.3);
+        }
+        
+        .social-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .social-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: rgba(96, 165, 250, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .error-message {
+            color: #e53e3e;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .success-message {
+            background-color: rgba(52, 211, 153, 0.1);
+            border-left: 4px solid #34D399;
+            padding: 1rem;
+            color: #065f46;
+            margin-bottom: 1rem;
+            animation: fadeIn 0.5s ease-in-out;
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6B7280;
+            cursor: pointer;
+        }
+        
+        .form-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body class="pt-16 pb-12">
+    <nav class="bg-white shadow-md fixed w-full top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-robot text-2xl text-blue-600"></i>
+                <span class="text-xl font-bold text-gray-800">🤖 全域畅游——基于跨模态学习的Roban智能服务机器人</span>
+            </div>
+            
+            <div class="hidden md:flex space-x-6">
+                <a href="index.html" class="nav-link text-gray-700 hover:text-blue-600">首页</a>
+                <a href="map.html" class="nav-link text-gray-700 hover:text-blue-600">路径规划</a>
+                <a href="feedback.html" class="nav-link text-gray-700 hover:text-blue-600">用户反馈</a>
+                <a href="weather.html" class="nav-link text-gray-700 hover:text-blue-600">天气信息</a>
+                <a href="language.html" class="nav-link text-gray-700 hover:text-blue-600">语言设置</a>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <a href="login.html" class="btn-primary px-4 py-2 rounded-md text-black text-sm font-medium">
+                    登录 / 注册
+                </a>
+                <button class="md:hidden text-gray-700 focus:outline-none" id="menuToggle">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 移动端菜单 -->
+        <div id="mobileMenu" class="hidden bg-black w-full py-3 px-4 shadow-lg md:hidden">
+            <div class="flex flex-col space-y-3">
+                <a href="index.html" class="text-gray-700 hover:text-blue-600 py-2">首页</a>
+                <a href="map.html" class="text-gray-700 hover:text-blue-600 py-2">路径规划</a>
+                <a href="feedback.html" class="text-gray-700 hover:text-blue-600 py-2">用户反馈</a>
+                <a href="weather.html" class="text-gray-700 hover:text-blue-600 py-2">天气信息</a>
+                <a href="language.html" class="text-gray-700 hover:text-blue-600 py-2">语言设置</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8 flex justify-center items-center min-h-screen -mt-16">
+        <div class="auth-container w-full max-w-md">
+            <!-- 标题栏 -->
+            <div class="auth-header p-6 text-white">
+                <h2 class="text-2xl font-bold text-center">欢迎使用冰雪导览机器人</h2>
+                <p class="text-center text-blue-100 mt-2">登录或注册体验智能导览服务</p>
+            </div>
+            
+            <!-- 标签切换 -->
+            <div class="flex">
+                <button id="loginTab" class="tab tab-active w-1/2 py-4 font-medium text-center text-black">登录</button>
+                <button id="registerTab" class="tab w-1/2 py-4 font-medium text-center text-black">注册</button>
+            </div>
+            
+            <!-- 登录表单 -->
+            <div id="loginForm" class="p-6">
+                <div id="loginSuccess" class="success-message">
+                    <p><i class="fas fa-check-circle mr-2"></i>登录成功！即将为您跳转...</p>
+                </div>
+                
+                <form id="userLoginForm" novalidate>
+                    <div class="form-group">
+                        <label for="loginUsername" class="block text-gray-700 font-medium mb-2">用户名</label>
+                        <input 
+                            type="text" 
+                            id="loginUsername" 
+                            name="loginUsername" 
+                            class="form-input w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-200 focus:outline-none" 
+                            placeholder="请输入您的用户名"
+                            required
+                        >
+                        <div class="error-message" id="loginUsernameError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword" class="block text-gray-700 font-medium mb-2">密码</label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="loginPassword" 
+                                name="loginPassword" 
+                                class="form-input w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-200 focus:outline-none" 
+                                placeholder="请输入您的密码"
+                                required
+                            >
+                            <span class="password-toggle" onclick="togglePassword('loginPassword', this)">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                        <div class="error-message" id="loginPasswordError"></div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="rememberMe" class="w-4 h-4 text-blue-600">
+                            <label for="rememberMe" class="ml-2 text-sm text-gray-600">记住我</label>
+                        </div>
+                        
+                        <a href="#" class="text-sm text-blue-600 hover:underline">忘记密码?</a>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary w-full py-3 rounded-lg text-white font-medium">
+                        登 录
+                    </button>
+                </form>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-gray-600 mb-4">或使用以下方式登录</p>
+                    
+                    <div class="flex justify-center space-x-4">
+                        <a href="#" class="social-btn w-12 h-12 flex items-center justify-center bg-blue-100 text-blue-600 rounded-full">
+                            <i class="fab fa-weixin text-xl"></i>
+                        </a>
+                        <a href="#" class="social-btn w-12 h-12 flex items-center justify-center bg-red-100 text-red-600 rounded-full">
+                            <i class="fab fa-weibo text-xl"></i>
+                        </a>
+                        <a href="#" class="social-btn w-12 h-12 flex items-center justify-center bg-gray-100 text-gray-600 rounded-full">
+                            <i class="fas fa-qrcode text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 注册表单 -->
+            <div id="registerForm" class="p-6 hidden">
+                <div id="registerSuccess" class="success-message">
+                    <p><i class="fas fa-check-circle mr-2"></i>注册成功！请使用新账号登录。</p>
+                </div>
+                
+                <form id="userRegisterForm" novalidate>
+                    <div class="form-group">
+                        <label for="registerUsername" class="block text-gray-700 font-medium mb-2">用户名</label>
+                        <input 
+                            type="text" 
+                            id="registerUsername" 
+                            name="registerUsername" 
+                            class="form-input w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-200 focus:outline-none" 
+                            placeholder="请设置您的用户名 (3-20个字符)"
+                            required
+                            minlength="3"
+                            maxlength="20"
+                        >
+                        <div class="error-message" id="registerUsernameError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerEmail" class="block text-gray-700 font-medium mb-2">电子邮箱</label>
+                        <input 
+                            type="email" 
+                            id="registerEmail" 
+                            name="registerEmail" 
+                            class="form-input w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-200 focus:outline-none" 
+                            placeholder="请输入您的电子邮箱"
+                            required
+                        >
+                        <div class="error-message" id="registerEmailError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerPassword" class="block text-gray-700 font-medium mb-2">密码</label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="registerPassword" 
+                                name="registerPassword" 
+                                class="form-input w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-200 focus:outline-none" 
+                                placeholder="请设置您的密码 (至少8位，包含字母和数字)"
+                                required
+                                minlength="8"
+                            >
+                            <span class="password-toggle" onclick="togglePassword('registerPassword', this)">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                        <div class="error-message" id="registerPasswordError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword" class="block text-gray-700 font-medium mb-2">确认密码</label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="confirmPassword" 
+                                name="confirmPassword" 
+                                class="form-input w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-200 focus:outline-none" 
+                                placeholder="请再次输入密码"
+                                required
+                            >
+                            <span class="password-toggle" onclick="togglePassword('confirmPassword', this)">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                        <div class="error-message" id="confirmPasswordError"></div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="agreeTerms" class="w-4 h-4 text-blue-600" required>
+                            <label for="agreeTerms" class="ml-2 text-sm text-gray-600">
+                                我已阅读并同意
+                                <a href="#" class="text-blue-600 hover:underline">服务条款</a>
+                                和
+                                <a href="#" class="text-blue-600 hover:underline">隐私政策</a>
+                            </label>
+                        </div>
+                        <div class="error-message" id="agreeTermsError"></div>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary w-full py-3 rounded-lg text-white font-medium">
+                        注 册
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p class="mb-2">© 2025 冰雪导览机器人系统 版权所有</p>
+            <p class="text-gray-400 text-sm">智能导览 · 精准规划 · 环保清洁</p>
+        </div>
+    </footer>
+
+    <script>
+        // 移动端菜单控制
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.remove('hidden');
+            } else {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+        
+        // 标签切换功能
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        
+        loginTab.addEventListener('click', () => {
+            loginTab.classList.add('tab-active');
+            registerTab.classList.remove('tab-active');
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+        });
+        
+        registerTab.addEventListener('click', () => {
+            registerTab.classList.add('tab-active');
+            loginTab.classList.remove('tab-active');
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+        });
+        
+        // 密码可见性切换
+        function togglePassword(inputId, icon) {
+            const passwordInput = document.getElementById(inputId);
+            const iconElement = icon.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                iconElement.classList.remove('fa-eye');
+                iconElement.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                iconElement.classList.remove('fa-eye-slash');
+                iconElement.classList.add('fa-eye');
+            }
+        }
+        
+        // 创建粒子效果
+        function createParticles() {
+            const particleContainer = document.body;
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // 随机位置和大小
+                const size = Math.random() * 3 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.opacity = Math.random() * 0.5 + 0.3;
+                
+                // 初始位置
+                const xPos = Math.random() * window.innerWidth;
+                const yPos = Math.random() * window.innerHeight;
+                particle.style.left = `${xPos}px`;
+                particle.style.top = `${yPos}px`;
+                
+                particleContainer.appendChild(particle);
+                
+                // 粒子动画
+                animateParticle(particle);
+            }
+        }
+        
+        function animateParticle(particle) {
+            const duration = Math.random() * 15000 + 10000;
+            const xPos = Math.random() * window.innerWidth;
+            const yPos = Math.random() * window.innerHeight;
+            
+            particle.animate([
+                { transform: `translate(${particle.style.left}, ${particle.style.top})` },
+                { transform: `translate(${xPos}px, ${yPos}px)` }
+            ], {
+                duration: duration,
+                easing: 'ease-in-out'
+            }).onfinish = () => {
+                particle.style.left = `${xPos}px`;
+                particle.style.top = `${yPos}px`;
+                animateParticle(particle);
+            };
+        }
+        
+        // 表单验证函数
+        function validateLoginForm() {
+            const username = document.getElementById('loginUsername');
+            const password = document.getElementById('loginPassword');
+            const usernameError = document.getElementById('loginUsernameError');
+            const passwordError = document.getElementById('loginPasswordError');
+            let isValid = true;
+            
+            // 重置错误信息
+            usernameError.style.display = 'none';
+            passwordError.style.display = 'none';
+            
+            // 用户名验证
+            if (username.value.trim() === '') {
+                usernameError.textContent = '请输入用户名';
+                usernameError.style.display = 'block';
+                isValid = false;
+            }
+            
+            // 密码验证
+            if (password.value === '') {
+                passwordError.textContent = '请输入密码';
+                passwordError.style.display = 'block';
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+        
+        function validateRegisterForm() {
+            const username = document.getElementById('registerUsername');
+            const email = document.getElementById('registerEmail');
+            const password = document.getElementById('registerPassword');
+            const confirmPassword = document.getElementById('confirmPassword');
+            const agreeTerms = document.getElementById('agreeTerms');
+            
+            const usernameError = document.getElementById('registerUsernameError');
+            const emailError = document.getElementById('registerEmailError');
+            const passwordError = document.getElementById('registerPasswordError');
+            const confirmPasswordError = document.getElementById('confirmPasswordError');
+            const agreeTermsError = document.getElementById('agreeTermsError');
+            
+            let isValid = true;
+            
+            // 重置错误信息
+            usernameError.style.display = 'none';
+            emailError.style.display = 'none';
+            passwordError.style.display = 'none';
+            confirmPasswordError.style.display = 'none';
+            agreeTermsError.style.display = 'none';
+            
+            // 用户名验证
+            if (username.value.trim() === '') {
+                usernameError.textContent = '请输入用户名';
+                usernameError.style.display = 'block';
+                isValid = false;
+            } else if (username.value.length < 3) {
+                usernameError.textContent = '用户名长度不能少于3个字符';
+                usernameError.style.display = 'block';
+                isValid = false;
+            } else if (username.value.length > 20) {
+                usernameError.textContent = '用户名长度不能超过20个字符';
+                usernameError.style.display = 'block';
+                isValid = false;
+            }
+            
+            // 邮箱验证
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (email.value.trim() === '') {
+                emailError.textContent = '请输入电子邮箱';
+                emailError.style.display = 'block';
+                isValid = false;
+            } else if (!emailRegex.test(email.value)) {
+                emailError.textContent = '请输入有效的电子邮箱地址';
+                emailError.style.display = 'block';
+                isValid = false;
+            }
+            
+            // 密码验证
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+            if (password.value === '') {
+                passwordError.textContent = '请设置密码';
+                passwordError.style.display = 'block';
+                isValid = false;
+            } else if (password.value.length < 8) {
+                passwordError.textContent = '密码长度不能少于8个字符';
+                passwordError.style.display = 'block';
+                isValid = false;
+            } else if (!passwordRegex.test(password.value)) {
+                passwordError.textContent = '密码必须包含至少一个字母和一个数字';
+                passwordError.style.display = 'block';
+                isValid = false;
+            }
+            
+            // 确认密码验证
+            if (confirmPassword.value === '') {
+                confirmPasswordError.textContent = '请确认密码';
+                confirmPasswordError.style.display = 'block';
+                isValid = false;
+            } else if (confirmPassword.value !== password.value) {
+                confirmPasswordError.textContent = '两次输入的密码不一致';
+                confirmPasswordError.style.display = 'block';
+                isValid = false;
+            }
+            
+            // 服务条款验证
+            if (!agreeTerms.checked) {
+                agreeTermsError.textContent = '请阅读并同意服务条款和隐私政策';
+                agreeTermsError.style.display = 'block';
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+        
+        // 表单提交处理
+        document.getElementById('userLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (validateLoginForm()) {
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                // 从localStorage中获取用户数据
+                const users = JSON.parse(localStorage.getItem('iceWorldUsers')) || [];
+                const user = users.find(u => u.username === username && u.password === password);
+                
+                if (user) {
+                    // 登录成功
+                    const loginSuccess = document.getElementById('loginSuccess');
+                    loginSuccess.style.display = 'block';
+                    
+                    // 设置当前用户
+                    localStorage.setItem('currentUser', JSON.stringify({
+                        username: user.username,
+                        email: user.email,
+                        loggedIn: true
+                    }));
+                    
+                    // 3秒后跳转到首页
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
+                } else {
+                    // 登录失败
+                    const passwordError = document.getElementById('loginPasswordError');
+                    passwordError.textContent = '用户名或密码错误';
+                    passwordError.style.display = 'block';
+                }
+            }
+        });
+        
+        document.getElementById('userRegisterForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (validateRegisterForm()) {
+                const username = document.getElementById('registerUsername').value;
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                
+                // 从localStorage中获取用户数据
+                const users = JSON.parse(localStorage.getItem('iceWorldUsers')) || [];
+                
+                // 检查用户名是否已存在
+                if (users.some(u => u.username === username)) {
+                    const usernameError = document.getElementById('registerUsernameError');
+                    usernameError.textContent = '该用户名已被注册';
+                    usernameError.style.display = 'block';
+                    return;
+                }
+                
+                // 检查邮箱是否已存在
+                if (users.some(u => u.email === email)) {
+                    const emailError = document.getElementById('registerEmailError');
+                    emailError.textContent = '该电子邮箱已被注册';
+                    emailError.style.display = 'block';
+                    return;
+                }
+                
+                // 添加新用户
+                users.push({
+                    username: username,
+                    email: email,
+                    password: password,
+                    registrationDate: new Date().toISOString()
+                });
+                
+                // 保存到localStorage
+                localStorage.setItem('iceWorldUsers', JSON.stringify(users));
+                
+                // 显示注册成功消息
+                const registerSuccess = document.getElementById('registerSuccess');
+                registerSuccess.style.display = 'block';
+                
+                // 清空表单
+                document.getElementById('userRegisterForm').reset();
+                
+                // 3秒后切换到登录页面
+                setTimeout(() => {
+                    loginTab.click();
+                }, 3000);
+            }
+        });
+        
+        // 页面加载完成后执行
+        window.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            
+            // 检查是否已登录
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (currentUser && currentUser.loggedIn) {
+                // 如果已登录，显示一个已登录提示
+                const loginSuccess = document.getElementById('loginSuccess');
+                loginSuccess.innerHTML = `<p><i class="fas fa-user-check mr-2"></i>您已登录为: ${currentUser.username}</p>`;
+                loginSuccess.style.display = 'block';
+                
+                // 修改登录按钮为退出按钮
+                const loginButton = document.querySelector('.btn-primary');
+                loginButton.textContent = '退出登录';
+                loginButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    localStorage.removeItem('currentUser');
+                    window.location.reload();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+

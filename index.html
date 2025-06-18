@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>全域畅游——基于跨模态学习的Roban智能服务机器人</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1e40af;
+            --secondary-color: #60a5fa;
+            --accent-color: #93c5fd;
+            --dark-color: #1e293b;
+            --light-color: #f0f9ff;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #dbeafe, #eff6ff, #e0f2fe);
+            overflow-x: hidden;
+        }
+        
+        .hero-section {
+            background: linear-gradient(to bottom, rgba(30, 64, 175, 0.8), rgba(30, 64, 175, 0.4)),
+                        url("img/图片.jpg") center/cover no-repeat;
+            height: 70vh;
+            position: relative;
+        }
+        
+        .snow {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: fall linear infinite;
+        }
+        
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(30, 64, 175, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(30, 64, 175, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            box-shadow: 0 4px 6px rgba(30, 64, 175, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(30, 64, 175, 0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .ice-world-card {
+            position: relative;
+            background: linear-gradient(45deg, #bfdbfe, #dbeafe);
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .ice-world-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 70%);
+            transform: rotate(30deg);
+            z-index: -1;
+        }
+        
+        .tech-badge {
+            background: linear-gradient(45deg, #3b82f6, #60a5fa);
+            border-radius: 20px;
+            padding: 0.25rem 0.75rem;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: rgba(96, 165, 250, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+            }
+            100% {
+                transform: translateY(0) rotate(360deg);
+            }
+        }
+        
+        .floating-icon {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <nav class="bg-white shadow-md fixed w-full top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-robot text-2xl text-blue-600"></i>
+                <span class="text-xl font-bold text-gray-800">全域畅游——基于跨模态学习的Roban智能服务机器人</span>
+            </div>
+            
+            <div class="hidden md:flex space-x-6">
+                <a href="index.html" class="nav-link text-blue-600 font-medium">首页</a>
+                <a href="map.html" class="nav-link text-gray-700 hover:text-blue-600">路径规划</a>
+                <a href="feedback.html" class="nav-link text-gray-700 hover:text-blue-600">用户反馈</a>
+                <a href="weather.html" class="nav-link text-gray-700 hover:text-blue-600">天气信息</a>
+                <a href="language.html" class="nav-link text-gray-700 hover:text-blue-600">语言设置</a>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <a href="login.html" class="btn-primary px-4 py-2 rounded-md text-white text-sm font-medium">
+                    登录 / 注册
+                </a>
+                <button class="md:hidden text-gray-700 focus:outline-none" id="menuToggle">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 移动端菜单 -->
+        <div id="mobileMenu" class="hidden bg-white w-full py-3 px-4 shadow-lg md:hidden">
+            <div class="flex flex-col space-y-3">
+                <a href="index.html" class="text-blue-600 font-medium py-2">首页</a>
+                <a href="map.html" class="text-gray-700 hover:text-blue-600 py-2">路径规划</a>
+                <a href="feedback.html" class="text-gray-700 hover:text-blue-600 py-2">用户反馈</a>
+                <a href="weather.html" class="text-gray-700 hover:text-blue-600 py-2">天气信息</a>
+                <a href="language.html" class="text-gray-700 hover:text-blue-600 py-2">语言设置</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="hero-section flex items-center justify-center" id="snowContainer">
+        <div class="container mx-auto text-center px-4 pt-20">
+            <h1 class="text-4xl md:text-6xl font-bold text-white mb-4 animate__animated animate__fadeInDown">
+                全域畅游——基于跨模态学习的Roban智能服务机器人
+            </h1>
+            <p class="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
+                采用前沿技术，为您提供专业导览、智能规划和环保保洁服务
+            </p>
+            <div class="flex justify-center space-x-4 mb-8">
+                <a href="map.html" class="btn-primary px-6 py-3 rounded-lg text-white font-medium">
+                    <i class="fas fa-map-marked-alt mr-2"></i>查看导览地图
+                </a>
+                <a href="login.html" class="btn-secondary px-6 py-3 rounded-lg text-white font-medium">
+                    <i class="fas fa-user-plus mr-2"></i>注册体验
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-16">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">智能导览，极致体验</h2>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                我们的机器人采用最前沿技术，为冰雪大世界的游客提供全方位服务
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            <!-- 导览讲解功能 -->
+            <div class="feature-card p-6">
+                <div class="text-center mb-4">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-microphone-alt text-2xl text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">智能导览讲解</h3>
+                    <p class="text-gray-600">
+                        配备多语言讲解系统，根据游客需求提供专业解说，让您深入了解冰雪文化
+                    </p>
+                </div>
+				<video controls><source src="img/视频/视频.mp4" alt="导览讲解" class="w-full h-48 object-cover rounded-lg"> </video>
+               
+            </div>
+            
+            <!-- 路径规划功能 -->
+            <div class="feature-card p-6">
+                <div class="text-center mb-4">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-route text-2xl text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">智能路径规划</h3>
+                    <p class="text-gray-600">
+                        根据游客喜好和时间安排，定制最佳游览路线，避开拥挤区域
+                    </p>
+                </div>
+                <img src="img/功能1.png" alt="路径规划" class="w-full h-48 object-cover rounded-lg">
+            </div>
+            
+            <!-- 垃圾拾取功能 -->
+            <div class="feature-card p-6">
+                <div class="text-center mb-4">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-trash-alt text-2xl text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">环保垃圾拾取</h3>
+                    <p class="text-gray-600">
+                        配备自动检测和收集系统，保持冰雪世界洁净美丽，践行环保理念
+                    </p>
+                </div>
+                <img src="img/照片.jpg" alt="垃圾拾取" class="w-full h-48 object-cover rounded-lg">
+            </div>
+        </div>
+
+        <!-- 技术亮点部分 -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 mb-16">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">核心技术优势</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 跨模态交互技术 -->
+                <div class="ice-world-card rounded-xl p-6 relative">
+                    <div class="flex items-start mb-4">
+                        <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mr-4 floating-icon">
+                            <i class="fas fa-brain text-xl text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-2">跨模态交互技术</h3>
+                            <div class="flex flex-wrap mb-3">
+                                <span class="tech-badge">语音识别</span>
+                                <span class="tech-badge">手势交互</span>
+                                <span class="tech-badge">面部识别</span>
+                                <span class="tech-badge">情感反馈</span>
+                            </div>
+                            <p class="text-gray-600">
+                                通过整合语音、视觉和触觉等多种交互方式，我们的机器人能够理解游客的各种需求表达，
+                                提供更加自然流畅的人机交互体验，适应不同年龄层和文化背景的游客需求。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 三维激光扫描技术 -->
+                <div class="ice-world-card rounded-xl p-6 relative">
+                    <div class="flex items-start mb-4">
+                        <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mr-4 floating-icon">
+                            <i class="fas fa-laser-pointer text-xl text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-2">三维激光扫描技术</h3>
+                            <div class="flex flex-wrap mb-3">
+                                <span class="tech-badge">高精度定位</span>
+                                <span class="tech-badge">3D建模</span>
+                                <span class="tech-badge">障碍物避让</span>
+                                <span class="tech-badge">实时更新</span>
+                            </div>
+                            <p class="text-gray-600">
+                                采用业界领先的三维激光扫描系统，能够在复杂冰雪环境中精确定位，
+                                构建高精度3D地图，实时识别周围环境变化和潜在危险，确保游客安全。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 机器人展示部分 -->
+        <div class="text-center mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8">我们的智能导览机器人</h2>
+            <div class="relative">
+                <img src="img/动作.png"alt="冰雪导览机器人" class="w-full rounded-2xl shadow-xl mx-auto max-w-4xl">
+                <div class="absolute bottom-4 right-4 bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm px-4 py-2 rounded-lg">
+                    <p class="text-sm text-gray-600">导览机器人实景图</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 应用场景展示 -->
+        <div class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">冰雪大世界应用场景</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="rounded-xl overflow-hidden shadow-lg">
+                    <img src="img/微信图片_20250610183914.jpg" alt="冰雪场景" class="w-full h-48 object-cover">
+                    <div class="p-4 bg-white">
+                        <h3 class="font-medium text-lg text-gray-800">冰雕艺术导览</h3>
+                    </div>
+                </div>
+                
+                <div class="rounded-xl overflow-hidden shadow-lg">
+                    <img src="img/微信图片_20250610182751.jpg" alt="雪地场景" class="w-full h-48 object-cover">
+                    <div class="p-4 bg-white">
+                        <h3 class="font-medium text-lg text-gray-800">雪地游览服务</h3>
+                    </div>
+                </div>
+                
+                <div class="rounded-xl overflow-hidden shadow-lg">
+                    <img src="img/微信图片_20250610183222.jpg" alt="夜景场景" class="w-full h-48 object-cover">
+                    <div class="p-4 bg-white">
+                        <h3 class="font-medium text-lg text-gray-800">夜间灯光秀导览</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 号召性用语 -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-400 rounded-2xl p-8 text-center text-white mb-16">
+            <h2 class="text-3xl font-bold mb-4">开启智能冰雪之旅</h2>
+            <p class="text-xl mb-6 max-w-2xl mx-auto">
+                立即体验我们的智能导览机器人，让您的冰雪大世界之旅更加精彩纷呈！
+            </p>
+            <a href="login.html" class="btn-secondary px-8 py-3 rounded-lg font-medium inline-block">
+                马上预约体验
+            </a>
+        </div>
+    </div>
+
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">冰雪导览机器人</h3>
+                    <p class="text-gray-400">
+                        智能导览 · 精准规划 · 环保清洁<br>
+                        让您的冰雪之旅更加美好
+                    </p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">快速链接</h3>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="text-gray-400 hover:text-white">首页</a></li>
+                        <li><a href="map.html" class="text-gray-400 hover:text-white">路径规划</a></li>
+                        <li><a href="feedback.html" class="text-gray-400 hover:text-white">用户反馈</a></li>
+                        <li><a href="weather.html" class="text-gray-400 hover:text-white">天气信息</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">联系我们</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            
+                            <span class="text-gray-400">👔天枢竹陶AI</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone mr-2 text-blue-400"></i>
+                            <span class="text-gray-400">132 8492 3154</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope mr-2 text-blue-400"></i>
+                            <span class="text-gray-400">zy135246_2024@qq.com</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">关注我们</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="bg-blue-600 hover:bg-blue-500 w-10 h-10 rounded-full flex items-center justify-center">
+                            <i class="fab fa-weixin"></i>
+                        </a>
+                        <a href="#" class="bg-blue-600 hover:bg-blue-500 w-10 h-10 rounded-full flex items-center justify-center">
+                            <i class="fab fa-weibo"></i>
+                        </a>
+                        <a href="#" class="bg-blue-600 hover:bg-blue-500 w-10 h-10 rounded-full flex items-center justify-center">
+                            <i class="fab fa-tiktok"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>© 2025 天枢竹陶AI系统 版权所有</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 移动端菜单控制
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.remove('hidden');
+            } else {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+
+        // 创建雪花效果
+        function createSnowflakes() {
+            const snowContainer = document.getElementById('snowContainer');
+            const containerWidth = snowContainer.clientWidth;
+            const containerHeight = snowContainer.clientHeight;
+            
+            for (let i = 0; i < 50; i++) {
+                const snow = document.createElement('div');
+                snow.classList.add('snow');
+                
+                // 随机大小和位置
+                const size = Math.random() * 5 + 2;
+                snow.style.width = `${size}px`;
+                snow.style.height = `${size}px`;
+                snow.style.left = `${Math.random() * containerWidth}px`;
+                snow.style.opacity = Math.random() * 0.8 + 0.2;
+                
+                // 随机下落速度和延迟
+                const duration = Math.random() * 10 + 5;
+                snow.style.animationDuration = `${duration}s`;
+                snow.style.animationDelay = `${Math.random() * 5}s`;
+                
+                snowContainer.appendChild(snow);
+            }
+        }
+        
+        // 创建粒子效果
+        function createParticles() {
+            const particleContainer = document.body;
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // 随机位置和大小
+                const size = Math.random() * 3 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.opacity = Math.random() * 0.5 + 0.3;
+                
+                // 初始位置
+                const xPos = Math.random() * window.innerWidth;
+                const yPos = Math.random() * window.innerHeight;
+                particle.style.left = `${xPos}px`;
+                particle.style.top = `${yPos}px`;
+                
+                particleContainer.appendChild(particle);
+                
+                // 粒子动画
+                animateParticle(particle);
+            }
+        }
+        
+        function animateParticle(particle) {
+            const duration = Math.random() * 15000 + 10000;
+            const xPos = Math.random() * window.innerWidth;
+            const yPos = Math.random() * window.innerHeight;
+            
+            particle.animate([
+                { transform: `translate(${particle.style.left}, ${particle.style.top})` },
+                { transform: `translate(${xPos}px, ${yPos}px)` }
+            ], {
+                duration: duration,
+                easing: 'ease-in-out'
+            }).onfinish = () => {
+                particle.style.left = `${xPos}px`;
+                particle.style.top = `${yPos}px`;
+                animateParticle(particle);
+            };
+        }
+        
+        // 页面加载完成后执行
+        window.addEventListener('DOMContentLoaded', () => {
+            createSnowflakes();
+            createParticles();
+        });
+    </script>
+</body>
+</html>
+
+

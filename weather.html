@@ -1,0 +1,571 @@
+<!-- ice_world_robot_guide/frontend/weather.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>全域畅游——基于跨模态学习的Roban智能服务机器人</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .weather-icon {
+            font-size: 5rem;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+            }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+            }
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+            }
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+        .accuracy-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .accuracy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            transition: width 0.5s ease;
+        }
+        .tracking-active {
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+        .warning-box {
+            background: rgba(255, 165, 0, 0.2);
+            border-left: 4px solid orange;
+            padding: 12px;
+            border-radius: 0 8px 8px 0;
+        }
+    </style>
+</head>
+<body class="font-sans">
+    <div id="particles-js"></div>
+    
+    <div class="container mx-auto px-4 py-10">
+        <header class="text-center mb-10 fade-in">
+            <h1 class="text-4xl md:text-5xl font-bold mb-2">冰世界实时天气追踪</h1>
+            <p class="text-lg text-blue-200">基于您的实时位置提供精准天气信息</p>
+        </header>
+        
+        <div class="max-w-4xl mx-auto">
+            <!-- 定位状态卡片 -->
+            <div id="location-status" class="glass p-6 mb-8 text-center fade-in">
+                <div id="loading" class="flex flex-col items-center justify-center py-4">
+                    <div class="pulse bg-blue-400 bg-opacity-50 w-16 h-16 flex items-center justify-center rounded-full mb-4">
+                        <i class="fas fa-location-arrow text-white text-2xl"></i>
+                    </div>
+                    <p class="text-lg">正在获取您的位置...</p>
+                </div>
+                
+                <div id="location-display" class="hidden">
+                    <div class="flex items-center justify-center gap-3 mb-2">
+                        <i class="fas fa-map-marker-alt text-red-400 text-xl"></i>
+                        <h2 id="location-name" class="text-2xl font-semibold"></h2>
+                    </div>
+                    <p id="coordinates" class="text-sm text-blue-200"></p>
+                    <div class="mt-2">
+                        <span class="text-xs">定位精度: <span id="accuracy-value">--</span> 米</span>
+                        <div class="accuracy-bar w-32 mx-auto">
+                            <div id="accuracy-fill" class="accuracy-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="location-error" class="hidden">
+                    <div class="bg-red-500 bg-opacity-20 p-4 rounded-lg">
+                        <i class="fas fa-exclamation-triangle text-yellow-300 text-xl mr-2"></i>
+                        <span id="error-message">无法获取您的位置</span>
+                        <button id="retry-location" class="mt-3 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition-colors duration-200">
+                            重试
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 注意事项 -->
+            <div id="notice-section" class="glass p-4 mb-8 hidden fade-in">
+                <div class="warning-box">
+                    <h3 class="font-semibold mb-2 flex items-center">
+                        <i class="fas fa-exclamation-circle text-yellow-400 mr-2"></i>
+                        使用注意事项
+                    </h3>
+                    <ul class="text-sm space-y-1">
+                        <li>• 实时追踪会持续更新您的位置，可能增加设备电量消耗</li>
+                        <li>• 请确保已授予浏览器位置访问权限</li>
+                        <li>• 在室内或信号弱的地方定位精度可能降低</li>
+                        <li>• 天气数据更新间隔为5分钟</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 天气信息卡片 -->
+            <div id="weather-card" class="glass p-8 mb-8 hidden fade-in">
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="weather-icon mb-6 md:mb-0 md:mr-10 text-center">
+                        <i id="weather-icon" class="fas fa-cloud"></i>
+                    </div>
+                    
+                    <div class="flex-1">
+                        <div class="mb-6">
+                            <h3 class="text-4xl md:text-5xl font-bold mb-2">
+                                <span id="temperature">--</span>°C
+                            </h3>
+                            <p id="weather-desc" class="text-xl text-blue-200">天气状况</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div class="glass p-3 rounded-lg text-center">
+                                <p class="text-sm mb-1 text-blue-200">湿度</p>
+                                <p class="text-xl font-medium"><span id="humidity">--</span>%</p>
+                            </div>
+                            <div class="glass p-3 rounded-lg text-center">
+                                <p class="text-sm mb-1 text-blue-200">风速</p>
+                                <p class="text-xl font-medium"><span id="wind-speed">--</span> m/s</p>
+                            </div>
+                            <div class="glass p-3 rounded-lg text-center">
+                                <p class="text-sm mb-1 text-blue-200">气压</p>
+                                <p class="text-xl font-medium"><span id="pressure">--</span> hPa</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 更新时间和刷新按钮 -->
+            <div id="update-area" class="glass p-4 flex justify-between items-center text-sm hidden fade-in">
+                <div>
+                    <span>最后更新: </span>
+                    <span id="update-time">--:--</span>
+                </div>
+                <button id="refresh-btn" class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-4 rounded-lg transition-colors duration-200 flex items-center">
+                    <i class="fas fa-sync-alt mr-2"></i> 刷新数据
+                </button>
+            </div>
+            
+            <!-- 实时位置追踪 -->
+            <div id="tracking-section" class="glass p-6 mt-8 hidden fade-in">
+                <h3 class="text-2xl font-semibold mb-4 text-center">实时位置追踪</h3>
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div class="glass p-3 rounded-lg">
+                        <p class="text-sm mb-1 text-blue-200">纬度</p>
+                        <p class="text-xl font-medium"><span id="latitude">--</span>°</p>
+                    </div>
+                    <div class="glass p-3 rounded-lg">
+                        <p class="text-sm mb-1 text-blue-200">经度</p>
+                        <p class="text-xl font-medium"><span id="longitude">--</span>°</p>
+                    </div>
+                    <div class="glass p-3 rounded-lg">
+                        <p class="text-sm mb-1 text-blue-200">海拔</p>
+                        <p class="text-xl font-medium"><span id="altitude">--</span> 米</p>
+                    </div>
+                </div>
+                <div class="mt-4 text-center">
+                    <button id="start-tracking" class="bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-lg transition-colors duration-200 flex items-center mx-auto">
+                        <i class="fas fa-play mr-2"></i> 开始实时追踪
+                    </button>
+                    <button id="stop-tracking" class="bg-red-500 hover:bg-red-600 text-white py-2 px-6 rounded-lg transition-colors duration-200 flex items-center mx-auto mt-2 hidden">
+                        <i class="fas fa-stop mr-2"></i> 停止追踪
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 位置历史记录 -->
+            <!-- <div id="history-section" class="glass p-6 mt-8 hidden fade-in">
+                <h3 class="text-2xl font-semibold mb-4 text-center">位置历史记录</h3>
+                <div class="text-center py-10">
+                    <i class="fas fa-code text-4xl mb-4 text-blue-300"></i>
+                    <p class="text-lg">该功能正在开发中，敬请期待！</p>
+                </div>
+            </div> -->
+        </div>
+        
+        <footer class="text-center mt-16 text-sm text-blue-200 fade-in">
+            <p>© 2025 天枢竹陶AI系统 版权所有</p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // 粒子效果配置
+        particlesJS("particles-js", {
+            "particles": {
+                "number": {
+                    "value": 50,
+                    "density": {
+                        "enable": true,
+                        "value_area": 800
+                    }
+                },
+                "color": {
+                    "value": "#ffffff"
+                },
+                "shape": {
+                    "type": "circle",
+                    "stroke": {
+                        "width": 0,
+                        "color": "#000000"
+                    },
+                },
+                "opacity": {
+                    "value": 0.3,
+                    "random": true,
+                },
+                "size": {
+                    "value": 3,
+                    "random": true,
+                },
+                "line_linked": {
+                    "enable": true,
+                    "distance": 150,
+                    "color": "#ffffff",
+                    "opacity": 0.1,
+                    "width": 1
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 1.5,
+                    "direction": "none",
+                    "random": true,
+                    "straight": false,
+                    "out_mode": "out",
+                    "bounce": false,
+                }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": {
+                        "enable": true,
+                        "mode": "grab"
+                    },
+                    "onclick": {
+                        "enable": true,
+                        "mode": "push"
+                    },
+                    "resize": true
+                },
+            },
+            "retina_detect": true
+        });
+
+        // 天气相关变量
+        const apiKey = '4d8fb5b93d4af21d66a2948710284366'; // OpenWeatherMap免费API密钥
+        let currentPosition = null;
+        let watchId = null;
+        let isTracking = false;
+        let lastWeatherUpdate = null;
+
+        // DOM元素
+        const locationStatus = document.getElementById('location-status');
+        const loadingDiv = document.getElementById('loading');
+        const locationDisplay = document.getElementById('location-display');
+        const locationError = document.getElementById('location-error');
+        const errorMessage = document.getElementById('error-message');
+        const retryLocation = document.getElementById('retry-location');
+        const locationName = document.getElementById('location-name');
+        const coordinates = document.getElementById('coordinates');
+        const weatherCard = document.getElementById('weather-card');
+        const updateArea = document.getElementById('update-area');
+        const historySection = document.getElementById('history-section');
+        const updateTime = document.getElementById('update-time');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const trackingSection = document.getElementById('tracking-section');
+        const startTrackingBtn = document.getElementById('start-tracking');
+        const stopTrackingBtn = document.getElementById('stop-tracking');
+        const latitudeEl = document.getElementById('latitude');
+        const longitudeEl = document.getElementById('longitude');
+        const altitudeEl = document.getElementById('altitude');
+        const accuracyValue = document.getElementById('accuracy-value');
+        const accuracyFill = document.getElementById('accuracy-fill');
+        const noticeSection = document.getElementById('notice-section');
+
+        // 天气数据元素
+        const temperatureEl = document.getElementById('temperature');
+        const weatherIcon = document.getElementById('weather-icon');
+        const weatherDesc = document.getElementById('weather-desc');
+        const humidityEl = document.getElementById('humidity');
+        const windSpeedEl = document.getElementById('wind-speed');
+        const pressureEl = document.getElementById('pressure');
+
+        // 检查浏览器是否支持地理定位
+        function checkGeolocationSupport() {
+            if (navigator.geolocation) {
+                getLocation();
+                trackingSection.classList.remove('hidden');
+                noticeSection.classList.remove('hidden');
+            } else {
+                showError('您的浏览器不支持地理定位功能');
+            }
+        }
+
+        // 获取用户位置
+        function getLocation() {
+            navigator.geolocation.getCurrentPosition(
+                handleLocationSuccess,
+                handleLocationError,
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }
+
+        // 开始实时位置追踪
+        function startTracking() {
+            if (isTracking) return;
+            
+            isTracking = true;
+            trackingSection.classList.add('tracking-active');
+            startTrackingBtn.classList.add('hidden');
+            stopTrackingBtn.classList.remove('hidden');
+            
+            watchId = navigator.geolocation.watchPosition(
+                handleLocationSuccess,
+                handleLocationError,
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+            
+            // 每5分钟自动更新天气
+            setInterval(() => {
+                if (isTracking) {
+                    getWeatherData();
+                }
+            }, 300000); // 5分钟
+        }
+
+        // 停止实时位置追踪
+        function stopTracking() {
+            if (!isTracking) return;
+            
+            isTracking = false;
+            trackingSection.classList.remove('tracking-active');
+            startTrackingBtn.classList.remove('hidden');
+            stopTrackingBtn.classList.add('hidden');
+            
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+        }
+
+        // 处理位置获取成功
+        function handleLocationSuccess(position) {
+            currentPosition = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy,
+                altitude: position.coords.altitude || 0
+            };
+            
+            // 显示经纬度信息
+            coordinates.textContent = `经度: ${currentPosition.longitude.toFixed(6)}, 纬度: ${currentPosition.latitude.toFixed(6)}`;
+            
+            // 更新实时追踪数据
+            latitudeEl.textContent = currentPosition.latitude.toFixed(6);
+            longitudeEl.textContent = currentPosition.longitude.toFixed(6);
+            altitudeEl.textContent = currentPosition.altitude ? currentPosition.altitude.toFixed(2) : '--';
+            
+            // 更新定位精度显示
+            const accuracy = Math.round(currentPosition.accuracy);
+            accuracyValue.textContent = accuracy;
+            const accuracyPercentage = Math.min(100, Math.max(0, 100 - (accuracy / 100 * 100)));
+            accuracyFill.style.width = `${accuracyPercentage}%`;
+            
+            // 获取天气数据
+            getWeatherData();
+            
+            // 隐藏加载中状态，显示位置信息
+            loadingDiv.classList.add('hidden');
+            locationDisplay.classList.remove('hidden');
+            
+            // 显示刷新区域和历史区域
+            updateArea.classList.remove('hidden');
+            historySection.classList.remove('hidden');
+        }
+
+        // 处理位置获取失败
+        function handleLocationError(error) {
+            loadingDiv.classList.add('hidden');
+            locationError.classList.remove('hidden');
+            
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    showError("您拒绝了位置访问请求");
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    showError("位置信息不可用");
+                    break;
+                case error.TIMEOUT:
+                    showError("请求超时，请重试");
+                    break;
+                case error.UNKNOWN_ERROR:
+                    showError("发生未知错误");
+                    break;
+            }
+            
+            // 如果正在追踪，停止追踪
+            if (isTracking) {
+                stopTracking();
+            }
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            errorMessage.textContent = message;
+            locationError.classList.remove('hidden');
+            loadingDiv.classList.add('hidden');
+        }
+
+        // 获取天气数据
+        function getWeatherData() {
+            if (!currentPosition) return;
+            
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${currentPosition.latitude}&lon=${currentPosition.longitude}&appid=${apiKey}&units=metric&lang=zh_cn`;
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应异常');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    updateWeatherUI(data);
+                })
+                .catch(error => {
+                    console.error('获取天气数据时出错:', error);
+                    showError('获取天气数据失败，请稍后重试');
+                });
+        }
+
+        // 更新天气UI
+        function updateWeatherUI(data) {
+            // 显示天气卡片
+            weatherCard.classList.remove('hidden');
+            
+            // 更新位置名称
+            locationName.textContent = data.name || '未知地区';
+            
+            // 更新天气信息
+            temperatureEl.textContent = Math.round(data.main.temp);
+            weatherDesc.textContent = data.weather[0].description;
+            humidityEl.textContent = data.main.humidity;
+            windSpeedEl.textContent = data.wind.speed;
+            pressureEl.textContent = data.main.pressure;
+            
+            // 设置天气图标
+            setWeatherIcon(data.weather[0].id);
+            
+            // 更新最后更新时间
+            updateLastUpdated();
+        }
+
+        // 根据天气ID设置图标
+        function setWeatherIcon(weatherId) {
+            let iconClass = 'fa-cloud';
+            
+            // 根据天气ID设置对应的图标
+            if (weatherId >= 200 && weatherId < 300) {
+                iconClass = 'fa-bolt'; // 雷暴
+            } else if (weatherId >= 300 && weatherId < 400) {
+                iconClass = 'fa-cloud-rain'; // 毛毛雨
+            } else if (weatherId >= 500 && weatherId < 600) {
+                iconClass = 'fa-cloud-showers-heavy'; // 雨
+            } else if (weatherId >= 600 && weatherId < 700) {
+                iconClass = 'fa-snowflake'; // 雪
+            } else if (weatherId >= 700 && weatherId < 800) {
+                iconClass = 'fa-smog'; // 雾霾
+            } else if (weatherId === 800) {
+                iconClass = 'fa-sun'; // 晴天
+            } else if (weatherId > 800) {
+                iconClass = 'fa-cloud-sun'; // 多云
+            }
+            
+            // 更新图标
+            weatherIcon.className = ''; // 清除现有类名
+            weatherIcon.classList.add('fas', iconClass);
+        }
+
+        // 更新最后更新时间
+        function updateLastUpdated() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            
+            updateTime.textContent = `${hours}:${minutes}:${seconds}`;
+            lastWeatherUpdate = now;
+        }
+
+        // 重试获取位置
+        retryLocation.addEventListener('click', function() {
+            locationError.classList.add('hidden');
+            loadingDiv.classList.remove('hidden');
+            getLocation();
+        });
+
+        // 刷新天气数据
+        refreshBtn.addEventListener('click', function() {
+            // 添加旋转动画
+            const icon = refreshBtn.querySelector('i');
+            icon.classList.add('animate-spin');
+            
+            // 获取最新天气数据
+            getWeatherData();
+            
+            // 延迟移除旋转动画
+            setTimeout(() => {
+                icon.classList.remove('animate-spin');
+            }, 1000);
+        });
+
+        // 开始实时追踪
+        startTrackingBtn.addEventListener('click', startTracking);
+        
+        // 停止实时追踪
+        stopTrackingBtn.addEventListener('click', stopTracking);
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            checkGeolocationSupport();
+        });
+    </script>
+</body>
+</html>

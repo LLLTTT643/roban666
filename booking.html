@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>全域畅游——基于跨模态学习的Roban智能服务机器人</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .booking-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .booking-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+        }
+        
+        .attraction-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .attraction-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+        
+        .attraction-card.selected {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+        
+        .attraction-image {
+            height: 150px;
+            width: 100%;
+            object-fit: cover;
+        }
+        
+        .badge {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+        }
+        
+        .form-input {
+            background-color: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            color: #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+            outline: none;
+        }
+        
+        .form-select {
+            background-color: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            color: #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+            outline: none;
+        }
+        
+        .booking-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .booking-btn:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+        }
+        
+        .payment-method {
+            background-color: rgba(30, 41, 59, 0.8);
+            border: 2px solid transparent;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .payment-method:hover {
+            background-color: rgba(30, 41, 59, 1);
+        }
+        
+        .payment-method.selected {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+        
+        .payment-icon {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+        
+        .step-container {
+            position: relative;
+            padding-bottom: 2rem;
+        }
+        
+        .step-container:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 2.5rem;
+            left: 1rem;
+            height: calc(100% - 2.5rem);
+            width: 2px;
+            background-color: #3b82f6;
+        }
+        
+        .step-circle {
+            width: 2rem;
+            height: 2rem;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* 粒子特效 */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        /* 日期选择器自定义样式 */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.8);
+            cursor: pointer;
+        }
+        
+        /* 时间选择器自定义样式 */
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.8);
+            cursor: pointer;
+        }
+        
+        /* 折扣标签样式 */
+        .discount-label {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            transform: rotate(10deg);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 确认弹窗样式 */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .modal-backdrop.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            width: 90%;
+            max-width: 500px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            transform: scale(0.9);
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .modal-backdrop.active .modal-content {
+            transform: scale(1);
+        }
+        
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid rgba(59, 130, 246, 0.3);
+            border-radius: 50%;
+            border-top-color: #3b82f6;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .success-animation {
+            width: 4rem;
+            height: 4rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(16, 185, 129, 0.2);
+            border-radius: 50%;
+            position: relative;
+        }
+        
+        .success-checkmark {
+            width: 2rem;
+            height: 1rem;
+            border-left: 3px solid #10b981;
+            border-bottom: 3px solid #10b981;
+            transform: rotate(-45deg);
+            animation: checkmark 0.5s ease-in-out forwards;
+            opacity: 0;
+        }
+        
+        @keyframes checkmark {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 0;
+            }
+            50% {
+                width: 0;
+                height: 1rem;
+                opacity: 1;
+            }
+            100% {
+                width: 2rem;
+                height: 1rem;
+                opacity: 1;
+            }
+        }
+        
+        .ticket-info {
+            position: relative;
+            background: rgba(17, 24, 39, 0.8);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .ticket-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 10px,
+                rgba(59, 130, 246, 0.05) 10px,
+                rgba(59, 130, 246, 0.05) 20px
+            );
+            border-radius: 0.5rem;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+    <div class="particles" id="particles"></div>
+    
+    <nav class="bg-gray-900 bg-opacity-80 backdrop-filter backdrop-blur-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
+                        🤖 全域畅游——基于跨模态学习的Roban智能服务机器人
+                    </a>
+                    <div class="hidden md:flex space-x-4">
+                        <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition">首页</a>
+                        <a href="map.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition">地图导航</a>
+                        
+                        <a href="booking.html" class="px-3 py-2 rounded-md text-sm font-medium bg-blue-600 text-white">景点预订</a>
+                    </div>
+                </div>
+                <div>
+                    <button id="mobile-menu-button" class="md:hidden p-2 rounded-md hover:bg-gray-800 transition">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-800 transition">首页</a>
+                <a href="map.html" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-800 transition">地图导航</a>
+                
+                <a href="booking.html" class="block px-3 py-2 rounded-md text-base font-medium bg-blue-600 text-white">景点预订</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-6">
+        <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4 mb-6">
+            <h1 class="text-2xl font-bold mb-2">冰雪世界景点预订</h1>
+            <p class="text-gray-400">提前预订景点门票和项目，避免排队等待，享受优先入场和专属服务。</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 space-y-8">
+                <!-- 步骤1：选择景点 -->
+                <div class="step-container">
+                    <div class="flex items-center mb-4">
+                        <div class="step-circle">1</div>
+                        <h2 class="text-xl font-bold ml-3">选择景点</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="attraction-card" onclick="selectAttraction(this, 'icesculpture')">
+                            <div class="relative">
+                                <img src="img/图片.jpg" alt="冰雪大世界门票" class="attraction-image">
+                                <div class="discount-label">学生优惠</div>
+								
+                            </div>
+                            <div class="p-4">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-bold">冰雪大世界门票</h3>
+                                    <span class="text-blue-400 font-bold">原价<s>¥325</s><br>优惠后 ¥260</span>
+                                </div>
+                                <div class="flex items-center text-sm text-gray-400 mb-2">
+                                    <i class="fas fa-clock mr-1"></i> 12小时
+                                </div>
+                                <p class="text-sm text-gray-400 line-clamp-2">哈尔滨冰雪大世界始创于 1999 年，是大型冰雪艺术工程，冰雕雪塑美轮美奂，娱乐项目丰富，是冬季热门旅游地。</p>
+                                <div class="mt-3 flex items-center">
+                                    <div class="flex">
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star-half-alt text-yellow-400"></i>
+                                    </div>
+                                    <span class="text-xs text-gray-400 ml-2">4.9 (2157条评价)</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="attraction-card" onclick="selectAttraction(this, 'sledtrack')">
+                            <img src="img/微信图片_20250614191316.jpg" alt="雪景酒店" class="attraction-image">
+                            <div class="p-4">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-bold">雪景酒店</h3>
+                                    <span class="text-blue-400 font-bold">¥120</span>
+                                </div>
+                                <div class="flex items-center text-sm text-gray-400 mb-2">
+                                    <i class="fas fa-clock mr-1"></i> 每天
+                                </div>
+                                <p class="text-sm text-gray-400 line-clamp-2">雪景酒店依雪而建，冰雕客房搭配暖绒设施，推窗见林海雪原。提供滑雪直达、雪地温泉等服务，夜晚灯光映雪，宛如童话秘境。</p>
+                                <div class="mt-3 flex items-center">
+                                    <div class="flex">
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                    </div>
+                                    <span class="text-xs text-gray-400 ml-2">4.8 (1834条评价)</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="attraction-card" onclick="selectAttraction(this, 'restaurant')">
+                            <img src="img/铁锅炖.png" alt="铁锅炖" class="attraction-image">
+                            <div class="p-4">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-bold">铁锅炖</h3>
+                                    <span class="text-blue-400 font-bold">¥268起</span>
+                                </div>
+                                <div class="flex items-center text-sm text-gray-400 mb-2">
+                                    <i class="fas fa-clock mr-1">每锅</i> 
+                                </div>
+                                <p class="text-sm text-gray-400 line-clamp-2">铁锅炖是东北特色美食，大铁锅炖煮鸡、鱼、排骨等食材，搭配土豆、玉米等配菜，贴满面饼，香气浓郁，氛围热闹，尽显东北豪爽。</p>
+                                <div class="mt-3 flex items-center">
+                                    <div class="flex">
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star-half-alt text-yellow-400"></i>
+                                    </div>
+                                    <span class="text-xs text-gray-400 ml-2">4.6 (987条评价)</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="attraction-card" onclick="selectAttraction(this, 'forest')">
+                            <div class="relative">
+                                <img src="img/钥匙链.jpg" alt="纪念品" class="attraction-image">
+                                <div class="discount-label">限时特惠</div>
+                            </div>
+                            <div class="p-4">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-bold">纪念品</h3>
+                                    <span class="text-blue-400 font-bold">¥50</span>
+                                </div>
+                                <div class="flex items-center text-sm text-gray-400 mb-2">
+                                    <i class="fas fa-clock mr-1"></i> 每个
+                                </div>
+                                <p class="text-sm text-gray-400 line-clamp-2">冰雪主题纪念品多样，冰雕摆件晶莹剔透，雪绒玩偶憨态可掬，还有刻着雪花图案的围巾、钥匙扣，满载冬日浪漫记忆。</p>
+                                <div class="mt-3 flex items-center">
+                                    <div class="flex">
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                    </div>
+                                    <span class="text-xs text-gray-400 ml-2">4.9 (1567条评价)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 步骤2：选择日期和时间 -->
+                <div class="step-container">
+                    <div class="flex items-center mb-4">
+                        <div class="step-circle">2</div>
+                        <h2 class="text-xl font-bold ml-3">选择日期和时间</h2>
+                    </div>
+                    
+                    <div class="booking-card p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="booking-date" class="block text-sm font-medium text-gray-300 mb-2">参观日期</label>
+                                <input type="date" id="booking-date" name="booking-date" min="2025-05-07" class="form-input w-full rounded-md" required>
+                            </div>
+                            <div>
+                                <label for="booking-time" class="block text-sm font-medium text-gray-300 mb-2">参观时间</label>
+                                <select id="booking-time" name="booking-time" class="form-select w-full rounded-md">
+                                    <option value="" disabled selected>请选择时间段</option>
+                                    <option value="09:00">09:00 - 10:00</option>
+                                    <option value="10:00">10:00 - 11:00</option>
+                                    <option value="11:00">11:00 - 12:00</option>
+                                    <option value="13:00">13:00 - 14:00</option>
+                                    <option value="14:00">14:00 - 15:00</option>
+                                    <option value="15:00">15:00 - 16:00</option>
+                                    <option value="16:00">16:00 - 17:00</option>
+                                    <option value="17:00">17:00 - 18:00</option>
+                                    <option value="18:00">18:00 - 19:00</option>
+                                    <option value="19:00">19:00 - 20:00</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label for="visitors" class="block text-sm font-medium text-gray-300 mb-2">访客人数</label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div>
+                                    <label for="adult-count" class="block text-xs text-gray-400 mb-1">成人</label>
+                                    <div class="flex items-center">
+                                        <button type="button" class="bg-gray-700 rounded-l-md px-3 py-2 focus:outline-none" onclick="decrementCount('adult-count')">-</button>
+                                        <input type="number" id="adult-count" name="adult-count" min="1" max="10" value="2" class="form-input w-12 text-center py-2 border-l-0 border-r-0 rounded-none" readonly>
+                                        <button type="button" class="bg-gray-700 rounded-r-md px-3 py-2 focus:outline-none" onclick="incrementCount('adult-count')">+</button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label for="child-count" class="block text-xs text-gray-400 mb-1">儿童</label>
+                                    <div class="flex items-center">
+                                        <button type="button" class="bg-gray-700 rounded-l-md px-3 py-2 focus:outline-none" onclick="decrementCount('child-count')">-</button>
+                                        <input type="number" id="child-count" name="child-count" min="0" max="10" value="0" class="form-input w-12 text-center py-2 border-l-0 border-r-0 rounded-none" readonly>
+                                        <button type="button" class="bg-gray-700 rounded-r-md px-3 py-2 focus:outline-none" onclick="incrementCount('child-count')">+</button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label for="senior-count" class="block text-xs text-gray-400 mb-1">老人</label>
+                                    <div class="flex items-center">
+                                        <button type="button" class="bg-gray-700 rounded-l-md px-3 py-2 focus:outline-none" onclick="decrementCount('senior-count')">-</button>
+                                        <input type="number" id="senior-count" name="senior-count" min="0" max="10" value="0" class="form-input w-12 text-center py-2 border-l-0 border-r-0 rounded-none" readonly>
+                                        <button type="button" class="bg-gray-700 rounded-r-md px-3 py-2 focus:outline-none" onclick="incrementCount('senior-count')">+</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="md:col-span-1">
+                                    <label for="total-count" class="block text-xs text-blue-400 mb-1">总人数</label>
+                                    <div class="form-input w-full py-2 text-center font-bold">
+                                        <span id="total-count">2</span> 人
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label for="guide-type" class="block text-sm font-medium text-gray-300 mb-2">导览服务</label>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="payment-method guide-option" onclick="selectGuideOption(this, 'robot')">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-robot text-blue-400 payment-icon"></i>
+                                        <div>
+                                            <div class="font-medium">机器人导游</div>
+                                            <div class="text-xs text-gray-400">¥150/团</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="payment-method guide-option" onclick="selectGuideOption(this, 'human')">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-user-tie text-purple-400 payment-icon"></i>
+                                        <div>
+                                            <div class="font-medium">专业讲解员</div>
+                                            <div class="text-xs text-gray-400">¥100/团</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="payment-method guide-option selected" onclick="selectGuideOption(this, 'none')">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-walking text-green-400 payment-icon"></i>
+                                        <div>
+                                            <div class="font-medium">自助游览</div>
+                                            <div class="text-xs text-gray-400">免费</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label for="additional-options" class="block text-sm font-medium text-gray-300 mb-2">额外选项</label>
+                            <div class="space-y-2">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="option-photo" name="option-photo" class="mr-2 text-blue-500 focus:ring-blue-500 rounded">
+                                    <label for="option-photo" class="text-sm">专业摄影服务 (¥150)</label>
+                                </div>
+                                
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="option-vip" name="option-vip" class="mr-2 text-blue-500 focus:ring-blue-500 rounded">
+                                    <label for="option-vip" class="text-sm">VIP通道 (¥80)</label>
+                                </div>
+                                
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="option-meal" name="option-meal" class="mr-2 text-blue-500 focus:ring-blue-500 rounded">
+                                    <label for="option-meal" class="text-sm">餐食套餐 (¥120)</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                
+                <!-- 步骤3：支付信息 -->
+                <div class="step-container">
+                    <div class="flex items-center mb-4">
+                        <div class="step-circle">3</div>
+                        <h2 class="text-xl font-bold ml-3">支付信息</h2>
+                    </div>
+                    
+                    <div class="booking-card p-6">
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-300 mb-2">联系姓名</label>
+                                <input type="text" id="name" name="name" placeholder="请输入您的姓名" class="form-input w-full rounded-md">
+                            </div>
+                            
+                            <div>
+                                <label for="phone" class="block text-sm font-medium text-gray-300 mb-2">联系电话</label>
+                                <input type="tel" id="phone" name="phone" placeholder="请输入您的手机号码" class="form-input w-full rounded-md">
+                            </div>
+                            
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-300 mb-2">电子邮箱</label>
+                                <input type="email" id="email" name="email" placeholder="用于接收电子票和行程确认" class="form-input w-full rounded-md">
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <label class="block text-sm font-medium text-gray-300 mb-2">支付方式</label>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="payment-method selected" onclick="selectPaymentMethod(this, 'wechat')">
+                                    <div class="flex items-center">
+                                        <i class="fab fa-weixin text-green-400 payment-icon"></i>
+                                        <span>微信支付</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="payment-method" onclick="selectPaymentMethod(this, 'alipay')">
+                                    <div class="flex items-center">
+                                        <i class="fab fa-alipay text-blue-400 payment-icon"></i>
+                                        <span>支付宝</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="payment-method" onclick="selectPaymentMethod(this, 'card')">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-credit-card text-purple-400 payment-icon"></i>
+                                        <span>银行卡</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <label for="promo-code" class="block text-sm font-medium text-gray-300 mb-2">优惠码</label>
+                            <div class="flex">
+                                <input type="text" id="promo-code" name="promo-code" placeholder="输入优惠码" class="form-input rounded-l-md w-full">
+                                <button type="button" class="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-r-md focus:outline-none transition">
+                                    应用
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <div class="booking-card p-6 sticky top-24">
+                    <h2 class="text-xl font-bold mb-4">订单摘要</h2>
+                    
+                    <div class="space-y-4">
+                        <div id="selected-attraction" class="hidden">
+                            <div class="text-sm text-gray-400 mb-1">已选景点</div>
+                            <div class="font-medium" id="attraction-name">未选择</div>
+                        </div>
+                        
+                        <div>
+                            <div class="text-sm text-gray-400 mb-1">参观日期</div>
+                            <div class="font-medium" id="summary-date">未选择</div>
+                        </div>
+                        
+                        <div>
+                            <div class="text-sm text-gray-400 mb-1">参观时间</div>
+                            <div class="font-medium" id="summary-time">未选择</div>
+                        </div>
+                        
+                        <div>
+                            <div class="text-sm text-gray-400 mb-1">参观人数</div>
+                            <div class="font-medium">
+                                <span id="summary-adult-count">2</span> 成人，
+                                <span id="summary-child-count">0</span> 儿童，
+                                <span id="summary-senior-count">0</span> 老人
+                            </div>
+                        </div>
+                        
+                        <div id="guide-selection" class="hidden">
+                            <div class="text-sm text-gray-400 mb-1">导览服务</div>
+                            <div class="font-medium" id="guide-type">自助游览</div>
+                        </div>
+                        
+                        <div class="border-t border-gray-700 pt-4 mt-4">
+                            <div class="flex justify-between mb-2">
+                                <div>门票费用</div>
+                                <div id="ticket-price">¥0</div>
+                            </div>
+                            
+                            <div class="flex justify-between mb-2" id="guide-fee-container">
+                                <div>导览费用</div>
+                                <div id="guide-fee">¥0</div>
+                            </div>
+                            
+                            <div class="flex justify-between mb-2 hidden" id="additional-fee-container">
+                                <div>附加服务</div>
+                                <div id="additional-fee">¥0</div>
+                            </div>
+                            
+                            <div class="flex justify-between mb-2 text-green-400 hidden" id="discount-container">
+                                <div>优惠折扣</div>
+                                <div id="discount-amount">-¥0</div>
+                            </div>
+                            
+                            <div class="flex justify-between font-bold text-lg mt-4 pt-2 border-t border-gray-700">
+                                <div>总计</div>
+                                <div id="total-price">¥0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <button id="submit-booking" class="booking-btn w-full" onclick="submitBooking()">
+                                <i class="fas fa-check-circle"></i>
+                                确认预订
+                            </button>
+                        </div>
+                        
+                        <div class="text-xs text-gray-400 text-center mt-4">
+                            点击"确认预订"，即表示您同意我们的
+                            <a href="#" class="text-blue-400 hover:underline">预订条款</a>
+                            和
+                            <a href="#" class="text-blue-400 hover:underline">隐私政策</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- 确认弹窗 -->
+    <div id="confirmationModal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="p-6 text-center">
+                <div id="loading-state" class="flex flex-col items-center">
+                    <div class="loading-spinner mb-4"></div>
+                    <h3 class="text-lg font-medium mb-2">正在处理您的预订...</h3>
+                    <p class="text-sm text-gray-400">请稍候，这可能需要几秒钟时间</p>
+                </div>
+                
+                <div id="success-state" class="flex flex-col items-center hidden">
+                    <div class="success-animation mb-4">
+                        <div class="success-checkmark"></div>
+                    </div>
+                    <h3 class="text-xl font-medium text-green-400 mb-4">预订成功！</h3>
+                    
+                    <div class="ticket-info text-left w-full">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <span class="text-xs bg-blue-900 text-blue-300 py-1 px-2 rounded">电子票</span>
+                            </div>
+                            <div class="text-xs text-gray-400">预订号: <span id="booking-number">BK25050601</span></div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <div>
+                                <div class="text-xs text-gray-400">景点:</div>
+                                <div class="font-medium" id="confirmed-attraction"></div>
+                            </div>
+                            
+                            <div>
+                                <div class="text-xs text-gray-400">日期与时间:</div>
+                                <div class="font-medium" id="confirmed-datetime"></div>
+                            </div>
+                            
+                            <div>
+                                <div class="text-xs text-gray-400">人数:</div>
+                                <div class="font-medium" id="confirmed-visitors"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 text-center">
+                            <div class="text-xs text-gray-400 mb-1">电子票已发送至您的邮箱</div>
+                            <div class="font-medium text-blue-400" id="confirmed-email">user@example.com</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 space-y-3 w-full">
+                        <button class="booking-btn w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800">
+                            <i class="fas fa-download mr-2"></i>
+                            下载电子票
+                        </button>
+                        
+                        <button onclick="closeConfirmationModal()" class="w-full py-2 px-4 border border-gray-600 rounded-md hover:bg-gray-800 transition">
+                            返回首页
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="error-state" class="flex flex-col items-center hidden">
+                    <div class="mb-4 text-red-500 text-4xl">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <h3 class="text-lg font-medium mb-2">预订处理失败</h3>
+                    <p class="text-sm text-gray-400 mb-6">抱歉，处理您的预订时遇到了问题，请稍后再试</p>
+                    
+                    <button onclick="closeConfirmationModal()" class="booking-btn">
+                        返回修改
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-gray-900 bg-opacity-80 backdrop-filter backdrop-blur-lg mt-8 py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between">
+                <div class="mb-6 md:mb-0">
+                    <h2 class="text-xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">冰雪世界机器人导游</h2>
+                    <p class="text-gray-400 max-w-md">让您的冰雪世界之旅更加智能、安全、有趣，我们的机器人导游将全程为您提供专业服务。</p>
+                </div>
+                <div class="grid grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3">快速链接</h3>
+                        <ul class="space-y-2">
+                            <li><a href="index.html" class="text-gray-400 hover:text-white transition">首页</a></li>
+                            <li><a href="map.html" class="text-gray-400 hover:text-white transition">地图导航</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white transition">景点介绍</a></li>
+                            <li><a href="booking.html" class="text-gray-400 hover:text-white transition">预订信息</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3">联系我们</h3>
+                        <ul class="space-y-2">
+                            <li class="flex items-center"><i class="fas fa-envelope text-blue-400 mr-2"></i> <span class="text-gray-400">zy135246_2024@qq.com</span></li>
+                            <li class="flex items-center"><i class="fas fa-phone text-blue-400 mr-2"></i> <span class="text-gray-400">132 8492 3154</span></li>
+                            <li class="flex items-center"><i class="fas fa-map-marker-alt text-blue-400 mr-2"></i> <span class="text-gray-400">哈尔滨冰雪世界主题公园</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-6 text-center text-gray-500 text-sm">
+                &copy; 2025 天枢竹陶AI系统 版权所有。
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 移动菜单切换
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // 初始化日期选择器最小日期为明天
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const formattedDate = tomorrow.toISOString().split('T')[0];
+            document.getElementById('booking-date').min = formattedDate;
+            
+            // 检查URL参数是否有预选景点
+            const urlParams = new URLSearchParams(window.location.search);
+            const preselectedAttraction = urlParams.get('attraction');
+            if (preselectedAttraction) {
+                const attractionCards = document.querySelectorAll('.attraction-card');
+                attractionCards.forEach(card => {
+                    if (card.getAttribute('onclick').includes(preselectedAttraction)) {
+                        selectAttraction(card, preselectedAttraction);
+                    }
+                });
+            }
+            
+            // 日期和时间变动监听
+            document.getElementById('booking-date').addEventListener('change', updateOrderSummary);
+            document.getElementById('booking-time').addEventListener('change', updateOrderSummary);
+            
+            // 额外选项变动监听
+            document.getElementById('option-photo').addEventListener('change', updateOrderSummary);
+            document.getElementById('option-vip').addEventListener('change', updateOrderSummary);
+            document.getElementById('option-meal').addEventListener('change', updateOrderSummary);
+            
+            // 初始化总人数计算
+            updateTotalCount();
+            
+            // 粒子特效初始化
+            initParticles();
+        });
+        
+        // 粒子特效
+        function initParticles() {
+            const particles = document.getElementById('particles');
+            
+            function createParticle() {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.width = Math.random() * 3 + 1 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.backgroundColor = `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`;
+                particle.style.borderRadius = '50%';
+                particle.style.top = Math.random() * 100 + 'vh';
+                particle.style.left = Math.random() * 100 + 'vw';
+                
+                const duration = Math.random() * 20 + 10;
+                particle.style.animation = `float ${duration}s linear infinite`;
+                
+                const keyframes = `
+                    @keyframes float {
+                        0% {
+                            transform: translateY(0) rotate(0);
+                            opacity: ${Math.random() * 0.3 + 0.2};
+                        }
+                        50% {
+                            opacity: ${Math.random() * 0.3 + 0.1};
+                        }
+                        100% {
+                            transform: translateY(-${Math.random() * 100 + 50}vh) rotate(${Math.random() * 360}deg);
+                            opacity: 0;
+                        }
+                    }
+                `;
+                
+                const style = document.createElement('style');
+                style.innerHTML = keyframes;
+                document.head.appendChild(style);
+                
+                particles.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                    style.remove();
+                }, duration * 1000);
+            }
+            
+            // 创建初始粒子
+            for (let i = 0; i < 30; i++) {
+                createParticle();
+            }
+            
+            // 定期创建新粒子
+            setInterval(createParticle, 1000);
+        }
+        
+        // 景点数据
+        const attractionsData = {
+            'icesculpture': {
+                name: '冰雕艺术馆',
+                price: 98
+            },
+            'sledtrack': {
+                name: '雪橇滑道',
+                price: 120
+            },
+            'restaurant': {
+                name: '北极星餐厅',
+                price: 268
+            },
+            'forest': {
+                name: '雪国奇幻森林',
+                price: 158
+            }
+        };
+        
+        let selectedAttraction = '';
+        let selectedPaymentMethod = 'wechat';
+        let selectedGuideOption = 'none';
+        
+        // 选择景点
+        function selectAttraction(card, attractionId) {
+            const attractionCards = document.querySelectorAll('.attraction-card');
+            attractionCards.forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            
+            selectedAttraction = attractionId;
+            document.getElementById('selected-attraction').classList.remove('hidden');
+            document.getElementById('attraction-name').textContent = attractionsData[attractionId].name;
+            
+            updateOrderSummary();
+        }
+        
+        // 选择支付方式
+        function selectPaymentMethod(method, paymentType) {
+            const paymentMethods = document.querySelectorAll('.payment-method:not(.guide-option)');
+            paymentMethods.forEach(m => m.classList.remove('selected'));
+            method.classList.add('selected');
+            
+            selectedPaymentMethod = paymentType;
+        }
+        
+        // 选择导览选项
+        function selectGuideOption(option, guideType) {
+            const guideOptions = document.querySelectorAll('.guide-option');
+            guideOptions.forEach(o => o.classList.remove('selected'));
+            option.classList.add('selected');
+            
+            selectedGuideOption = guideType;
+            document.getElementById('guide-selection').classList.remove('hidden');
+            
+            let guideTypeText = '自助游览';
+            if (guideType === 'robot') {
+                guideTypeText = '机器人导游';
+            } else if (guideType === 'human') {
+                guideTypeText = '专业讲解员';
+            }
+            
+            document.getElementById('guide-type').textContent = guideTypeText;
+            updateOrderSummary();
+        }
+        
+        // 增加人数
+        function incrementCount(id) {
+            const input = document.getElementById(id);
+            const currentValue = parseInt(input.value);
+            if (currentValue < parseInt(input.max)) {
+                input.value = currentValue + 1;
+                updateTotalCount();
+                updateOrderSummary();
+            }
+        }
+        
+        // 减少人数
+        function decrementCount(id) {
+            const input = document.getElementById(id);
+            const currentValue = parseInt(input.value);
+            if (currentValue > parseInt(input.min)) {
+                input.value = currentValue - 1;
+                updateTotalCount();
+                updateOrderSummary();
+            }
+        }
+        
+        // 更新总人数
+        function updateTotalCount() {
+            const adultCount = parseInt(document.getElementById('adult-count').value);
+            const childCount = parseInt(document.getElementById('child-count').value);
+            const seniorCount = parseInt(document.getElementById('senior-count').value);
+            
+            const totalCount = adultCount + childCount + seniorCount;
+            document.getElementById('total-count').textContent = totalCount;
+            
+            // 更新摘要中的人数
+            document.getElementById('summary-adult-count').textContent = adultCount;
+            document.getElementById('summary-child-count').textContent = childCount;
+            document.getElementById('summary-senior-count').textContent = seniorCount;
+        }
+        
+        // 更新订单摘要
+        function updateOrderSummary() {
+            // 更新日期和时间
+            const bookingDate = document.getElementById('booking-date').value;
+            const bookingTime = document.getElementById('booking-time').value;
+            
+            if (bookingDate) {
+                const date = new Date(bookingDate);
+                const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+                document.getElementById('summary-date').textContent = date.toLocaleDateString('zh-CN', options);
+            } else {
+                document.getElementById('summary-date').textContent = '未选择';
+            }
+            
+            if (bookingTime) {
+                document.getElementById('summary-time').textContent = bookingTime;
+            } else {
+                document.getElementById('summary-time').textContent = '未选择';
+            }
+            
+            // 计算价格
+            calculateTotalPrice();
+        }
+        
+        // 计算总价
+        function calculateTotalPrice() {
+            let totalPrice = 0;
+            let ticketPrice = 0;
+            let guideFee = 0;
+            let additionalFee = 0;
+            let discount = 0;
+            
+            // 门票费用
+            if (selectedAttraction) {
+                const adultCount = parseInt(document.getElementById('adult-count').value);
+                const childCount = parseInt(document.getElementById('child-count').value);
+                const seniorCount = parseInt(document.getElementById('senior-count').value);
+                
+                // 成人全价，儿童和老人半价
+                const basePrice = attractionsData[selectedAttraction].price;
+                ticketPrice = basePrice * adultCount + basePrice * 0.5 * childCount + basePrice * 0.7 * seniorCount;
+                
+                // 冰雕艺术馆八折优惠
+                if (selectedAttraction === 'icesculpture') {
+                    discount = ticketPrice * 0.2;
+                    ticketPrice = ticketPrice * 0.8;
+                }
+                
+                document.getElementById('ticket-price').textContent = `¥${ticketPrice.toFixed(0)}`;
+            }
+            
+            // 导览费用
+            if (selectedGuideOption === 'robot') {
+                guideFee = 50;
+            } else if (selectedGuideOption === 'human') {
+                guideFee = 100;
+            }
+            document.getElementById('guide-fee').textContent = `¥${guideFee}`;
+            
+            // 附加服务费用
+            const photoService = document.getElementById('option-photo').checked;
+            const vipAccess = document.getElementById('option-vip').checked;
+            const mealPackage = document.getElementById('option-meal').checked;
+            
+            if (photoService) additionalFee += 150;
+            if (vipAccess) additionalFee += 80;
+            if (mealPackage) additionalFee += 120;
+            
+            if (additionalFee > 0) {
+                document.getElementById('additional-fee-container').classList.remove('hidden');
+                document.getElementById('additional-fee').textContent = `¥${additionalFee}`;
+            } else {
+                document.getElementById('additional-fee-container').classList.add('hidden');
+            }
+            
+            // 折扣显示
+            if (discount > 0) {
+                document.getElementById('discount-container').classList.remove('hidden');
+                document.getElementById('discount-amount').textContent = `-¥${discount.toFixed(0)}`;
+            } else {
+                document.getElementById('discount-container').classList.add('hidden');
+            }
+            
+            // 总价
+            totalPrice = ticketPrice + guideFee + additionalFee;
+            document.getElementById('total-price').textContent = `¥${totalPrice.toFixed(0)}`;
+        }
+        
+        // 提交预订
+        function submitBooking() {
+            // 基本验证
+            if (!selectedAttraction) {
+                alert('请选择一个景点');
+                return;
+            }
+            
+            const bookingDate = document.getElementById('booking-date').value;
+            if (!bookingDate) {
+                alert('请选择参观日期');
+                return;
+            }
+            
+            const bookingTime = document.getElementById('booking-time').value;
+            if (!bookingTime) {
+                alert('请选择参观时间');
+                return;
+            }
+            
+            const name = document.getElementById('name').value;
+            if (!name) {
+                alert('请输入联系姓名');
+                return;
+            }
+            
+            const phone = document.getElementById('phone').value;
+            if (!phone) {
+                alert('请输入联系电话');
+                return;
+            }
+            
+            const email = document.getElementById('email').value;
+            if (!email) {
+                alert('请输入电子邮箱');
+                return;
+            }
+            
+            // 显示确认弹窗
+            document.getElementById('confirmationModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // 模拟处理预订
+            setTimeout(function() {
+                document.getElementById('loading-state').classList.add('hidden');
+                
+                // 95%概率成功，5%概率失败
+                if (Math.random() < 0.95) {
+                    document.getElementById('success-state').classList.remove('hidden');
+                    
+                    // 更新确认信息
+                    document.getElementById('confirmed-attraction').textContent = attractionsData[selectedAttraction].name;
+                    
+                    const date = new Date(bookingDate);
+                    const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+                    document.getElementById('confirmed-datetime').textContent = 
+                        `${date.toLocaleDateString('zh-CN', options)} ${bookingTime}`;
+                    
+                    const adultCount = document.getElementById('adult-count').value;
+                    const childCount = document.getElementById('child-count').value;
+                    const seniorCount = document.getElementById('senior-count').value;
+                    
+                    document.getElementById('confirmed-visitors').textContent = 
+                        `${adultCount} 成人, ${childCount} 儿童, ${seniorCount} 老人`;
+                        
+                    document.getElementById('confirmed-email').textContent = email;
+                    
+                    // 生成随机预订号
+                    const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+                    document.getElementById('booking-number').textContent = `BK2505${randomNum}`;
+                } else {
+                    document.getElementById('error-state').classList.remove('hidden');
+                }
+            }, 2000);
+        }
+        
+        // 关闭确认弹窗
+        function closeConfirmationModal() {
+            document.getElementById('confirmationModal').classList.remove('active');
+            document.body.style.overflow = '';
+            
+            // 重置状态
+            setTimeout(function() {
+                document.getElementById('loading-state').classList.remove('hidden');
+                document.getElementById('success-state').classList.add('hidden');
+                document.getElementById('error-state').classList.add('hidden');
+            }, 300);
+        }
+    </script>
+</body>
+</html>
+
