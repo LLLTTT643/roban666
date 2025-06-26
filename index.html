@@ -1,3 +1,4 @@
+<!-- ice_world_robot_guide/frontend/index.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -22,12 +23,12 @@
             overflow-x: hidden;
         }
         
-        .hero-section {
-            background: linear-gradient(to bottom, rgba(30, 64, 175, 0.8), rgba(30, 64, 175, 0.4)),
-                        url("img/图片.jpg") center/cover no-repeat;
-            height: 70vh;
-            position: relative;
-        }
+         .hero-section {
+                    background: linear-gradient(to bottom, rgba(30, 64, 175, 0.8), rgba(30, 64, 175, 0.4)),
+                                url("img/图片.jpg") center/cover no-repeat;
+                    height: 70vh;
+                    position: relative;
+                }
         
         .snow {
             position: absolute;
@@ -156,6 +157,38 @@
         .floating-icon {
             animation: float 6s ease-in-out infinite;
         }
+
+        /* 垃圾检测指示器样式 */
+        .trash-indicator {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid #ef4444;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .trash-indicator.active {
+            animation: pulse 1.5s infinite;
+        }
+
+        .trash-indicator i {
+            margin-right: 0.5rem;
+            color: #ef4444;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -172,6 +205,12 @@
                 <a href="feedback.html" class="nav-link text-gray-700 hover:text-blue-600">用户反馈</a>
                 <a href="weather.html" class="nav-link text-gray-700 hover:text-blue-600">天气信息</a>
                 <a href="language.html" class="nav-link text-gray-700 hover:text-blue-600">语言设置</a>
+                <a href="rubbish.html" class="nav-link text-gray-700 hover:text-blue-600">
+                    <div class="trash-indicator">
+                        <i class="fas fa-trash-alt"></i>
+                        <span>垃圾检测</span>
+                    </div>
+                </a>
             </div>
             
             <div class="flex items-center space-x-3">
@@ -192,6 +231,12 @@
                 <a href="feedback.html" class="text-gray-700 hover:text-blue-600 py-2">用户反馈</a>
                 <a href="weather.html" class="text-gray-700 hover:text-blue-600 py-2">天气信息</a>
                 <a href="language.html" class="text-gray-700 hover:text-blue-600 py-2">语言设置</a>
+                <a href="map.html" class="text-gray-700 hover:text-blue-600 py-2">
+                    <div class="flex items-center">
+                        <i class="fas fa-trash-alt text-red-500 mr-2"></i>
+                        <span>垃圾检测</span>
+                    </div>
+                </a>
             </div>
         </div>
     </nav>
@@ -199,7 +244,7 @@
     <div class="hero-section flex items-center justify-center" id="snowContainer">
         <div class="container mx-auto text-center px-4 pt-20">
             <h1 class="text-4xl md:text-6xl font-bold text-white mb-4 animate__animated animate__fadeInDown">
-                全域畅游——基于跨模态学习的Roban智能服务机器人
+                冰雪大世界智能导览机器人
             </h1>
             <p class="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
                 采用前沿技术，为您提供专业导览、智能规划和环保保洁服务
@@ -235,8 +280,7 @@
                         配备多语言讲解系统，根据游客需求提供专业解说，让您深入了解冰雪文化
                     </p>
                 </div>
-				<video controls><source src="img/视频/视频.mp4" alt="导览讲解" class="w-full h-48 object-cover rounded-lg"> </video>
-               
+                <video src="img/视频/视频.mp4" alt="导览讲解" class="w-full h-48 object-cover rounded-lg">
             </div>
             
             <!-- 路径规划功能 -->
@@ -253,18 +297,18 @@
                 <img src="img/功能1.png" alt="路径规划" class="w-full h-48 object-cover rounded-lg">
             </div>
             
-            <!-- 垃圾拾取功能 -->
+            <!-- 垃圾检测功能 -->
             <div class="feature-card p-6">
                 <div class="text-center mb-4">
                     <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-trash-alt text-2xl text-blue-600"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">环保垃圾拾取</h3>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">GPS垃圾检测</h3>
                     <p class="text-gray-600">
-                        配备自动检测和收集系统，保持冰雪世界洁净美丽，践行环保理念
+                        实时检测园区内垃圾位置，支持游客参与环保行动，保持冰雪世界清洁
                     </p>
                 </div>
-                <img src="img/照片.jpg" alt="垃圾拾取" class="w-full h-48 object-cover rounded-lg">
+                <img src="img/照片.jpg" alt="垃圾检测" class="w-full h-48 object-cover rounded-lg">
             </div>
         </div>
 
@@ -295,23 +339,23 @@
                     </div>
                 </div>
                 
-                <!-- 三维激光扫描技术 -->
+                <!-- 三模激光扫描技术 -->
                 <div class="ice-world-card rounded-xl p-6 relative">
                     <div class="flex items-start mb-4">
                         <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mr-4 floating-icon">
                             <i class="fas fa-laser-pointer text-xl text-white"></i>
                         </div>
                         <div>
-                            <h3 class="text-xl font-semibold text-gray-800 mb-2">三维激光扫描技术</h3>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-2">三模激光扫描技术</h3>
                             <div class="flex flex-wrap mb-3">
                                 <span class="tech-badge">高精度定位</span>
                                 <span class="tech-badge">3D建模</span>
                                 <span class="tech-badge">障碍物避让</span>
-                                <span class="tech-badge">实时更新</span>
+                                <span class="tech-badge">垃圾检测</span>
                             </div>
                             <p class="text-gray-600">
-                                采用业界领先的三维激光扫描系统，能够在复杂冰雪环境中精确定位，
-                                构建高精度3D地图，实时识别周围环境变化和潜在危险，确保游客安全。
+                                采用业界领先的三模激光扫描系统，能够在复杂冰雪环境中精确定位，
+                                构建高精度3D地图，实时识别周围环境变化和潜在垃圾，确保游客安全和环境清洁。
                             </p>
                         </div>
                     </div>
@@ -323,7 +367,7 @@
         <div class="text-center mb-16">
             <h2 class="text-3xl font-bold text-gray-800 mb-8">我们的智能导览机器人</h2>
             <div class="relative">
-                <img src="img/动作.png"alt="冰雪导览机器人" class="w-full rounded-2xl shadow-xl mx-auto max-w-4xl">
+                <img src="img/动作.png" alt="冰雪导览机器人" class="w-full rounded-2xl shadow-xl mx-auto max-w-4xl">
                 <div class="absolute bottom-4 right-4 bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm px-4 py-2 rounded-lg">
                     <p class="text-sm text-gray-600">导览机器人实景图</p>
                 </div>
@@ -331,32 +375,32 @@
         </div>
         
         <!-- 应用场景展示 -->
-        <div class="mb-16">
-            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">冰雪大世界应用场景</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="rounded-xl overflow-hidden shadow-lg">
-                    <img src="img/微信图片_20250610183914.jpg" alt="冰雪场景" class="w-full h-48 object-cover">
-                    <div class="p-4 bg-white">
-                        <h3 class="font-medium text-lg text-gray-800">冰雕艺术导览</h3>
+         <div class="mb-16">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">冰雪大世界应用场景</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="rounded-xl overflow-hidden shadow-lg">
+                            <img src="img/微信图片_20250610183914.jpg" alt="冰雪场景" class="w-full h-48 object-cover">
+                            <div class="p-4 bg-white">
+                                <h3 class="font-medium text-lg text-gray-800">冰雕艺术导览</h3>
+                            </div>
+                        </div>
+                        
+                        <div class="rounded-xl overflow-hidden shadow-lg">
+                            <img src="img/微信图片_20250610182751.jpg" alt="雪地场景" class="w-full h-48 object-cover">
+                            <div class="p-4 bg-white">
+                                <h3 class="font-medium text-lg text-gray-800">雪地游览服务</h3>
+                            </div>
+                        </div>
+                        
+                        <div class="rounded-xl overflow-hidden shadow-lg">
+                            <img src="img/微信图片_20250610183222.jpg" alt="夜景场景" class="w-full h-48 object-cover">
+                            <div class="p-4 bg-white">
+                                <h3 class="font-medium text-lg text-gray-800">夜间灯光秀导览</h3>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="rounded-xl overflow-hidden shadow-lg">
-                    <img src="img/微信图片_20250610182751.jpg" alt="雪地场景" class="w-full h-48 object-cover">
-                    <div class="p-4 bg-white">
-                        <h3 class="font-medium text-lg text-gray-800">雪地游览服务</h3>
-                    </div>
-                </div>
-                
-                <div class="rounded-xl overflow-hidden shadow-lg">
-                    <img src="img/微信图片_20250610183222.jpg" alt="夜景场景" class="w-full h-48 object-cover">
-                    <div class="p-4 bg-white">
-                        <h3 class="font-medium text-lg text-gray-800">夜间灯光秀导览</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
         
         <!-- 号召性用语 -->
         <div class="bg-gradient-to-r from-blue-600 to-blue-400 rounded-2xl p-8 text-center text-white mb-16">
@@ -395,8 +439,8 @@
                     <h3 class="text-lg font-semibold mb-4">联系我们</h3>
                     <ul class="space-y-2">
                         <li class="flex items-center">
-                            
-                            <span class="text-gray-400">👔天枢竹陶AI</span>
+                            <i class="fas fa-map-marker-alt mr-2 text-blue-400"></i>
+                            <span class="text-gray-400">冰雪大世界园区内</span>
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-phone mr-2 text-blue-400"></i>
@@ -426,7 +470,7 @@
             </div>
             
             <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-                <p>© 2025 天枢竹陶AI系统 版权所有</p>
+                <p>© 2025 东北小清华 版权所有</p>
             </div>
         </div>
     </footer>
@@ -522,5 +566,4 @@
     </script>
 </body>
 </html>
-
 

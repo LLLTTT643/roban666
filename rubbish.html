@@ -1,3 +1,4 @@
+<!-- ice_world_robot_guide/frontend/map.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -76,6 +77,44 @@
             animation: pulse 2s infinite;
         }
         
+        .trash-point {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            background-color: #ef4444;
+            border: 2px solid #7f1d1d;
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.3);
+            animation: pulse 2s infinite;
+            z-index: 4;
+        }
+        
+        .trash-collected {
+            background-color: #10b981;
+            border-color: #064e3b;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.3);
+            animation: none;
+        }
+        
+        .trash-label {
+            position: absolute;
+            background-color: rgba(239, 68, 68, 0.9);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            transform: translateY(-130%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            color: white;
+        }
+        
+        .trash-point:hover .trash-label {
+            opacity: 1;
+        }
+        
         @keyframes pulse {
             0% {
                 box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
@@ -106,7 +145,7 @@
         
         .route-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(30, 64, 175, 0.3);
         }
         
         .route-step {
@@ -183,9 +222,34 @@
             align-items: center;
             gap: 0.75rem;
             box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);
-            animation: fadeIn 0.3s ease-in-out;
+            animation: fadeIn 0.5s ease-in-out;
             opacity: 0;
             visibility: hidden;
+        }
+        
+        .trash-alert {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.3);
+            animation: fadeIn 0.5s ease-in-out;
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .trash-alert.active {
+            opacity: 1;
+            visibility: visible;
+            animation: warningPulse 2s infinite;
         }
         
         .obstacle-warning.active {
@@ -240,6 +304,12 @@
         .obstacle-danger {
             background-color: rgba(239, 68, 68, 0.2);
             color: #ef4444;
+            animation: pulseDanger 2s infinite;
+        }
+        
+        .trash-detected {
+            background-color: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
             animation: pulseDanger 2s infinite;
         }
         
@@ -428,6 +498,53 @@
             margin-bottom: 0.5rem;
             display: inline-block;
         }
+        
+        /* 垃圾收集统计 */
+        .trash-stats {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .trash-progress {
+            height: 8px;
+            background-color: rgba(71, 85, 105, 0.5);
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .trash-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            transition: width 0.5s ease;
+        }
+        
+        .collect-btn {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .collect-btn:hover {
+            background: linear-gradient(90deg, #d97706, #f59e0b);
+            transform: translateY(-2px);
+        }
+        
+        .collect-btn:disabled {
+            background: #4b5563;
+            cursor: not-allowed;
+            transform: none;
+        }
     </style>
 </head>
 <body class="text-gray-200">
@@ -441,8 +558,7 @@
                         🤖 全域畅游——基于跨模态学习的Roban智能服务机器人
                     </a>
                     <div class="hidden md:flex space-x-4">
-                        <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition">首页</a>
-                        <a href="map.html" class="px-3 py-2 rounded-md text-sm font-medium bg-blue-600 text-white">地图导航</a>
+                        <a href="index.html" class="text-blue-600 font-medium py-2">首页</a>
                         <a href="rubbish.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition">垃圾检测</a>
                         <a href="booking.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition">景点预订</a>
                     </div>
@@ -456,18 +572,17 @@
         </div>
         <div id="mobile-menu" class="hidden md:hidden">
             <div class="px-2 pt-2 pb-3 space-y-1">
-                <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-800 transition">首页</a>
-                <a href="map.html" class="block px-3 py-2 rounded-md text-base font-medium bg-blue-600 text-white">地图导航</a>
-                <a href="rubbish.html" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-800 transition">垃圾检测</a>
-                <a href="booking.html" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-800 transition">景点预订</a>
+                <a href="index.html" class="text-blue-600 font-medium py-2">首页</a>
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-800 transition">垃圾检测</a>
+               <a href="booking.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition">景点预订</a>
             </div>
         </div>
     </nav>
 
     <main class="container mx-auto px-4 py-6">
         <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4 mb-6">
-            <h1 class="text-2xl font-bold mb-2">冰雪世界地图导航</h1>
-            <p class="text-gray-400">使用我们的智能导航系统，轻松探索冰雪世界的每个角落，我们会实时检测路线上的障碍物，确保您的旅行安全顺畅。</p>
+            <h1 class="text-2xl font-bold mb-2">垃圾检测图</h1>
+            <p class="text-gray-400">使用我们的智能导航系统，轻松探索冰雪世界的每个角落，我们会实时检测路线上的障碍物和垃圾，确保您的旅行安全顺畅。</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -482,6 +597,15 @@
                         </div>
                     </div>
                     
+                    <!-- 垃圾检测警告弹窗 -->
+                    <div id="trashAlert" class="trash-alert">
+                        <i class="fas fa-trash-alt text-xl"></i>
+                        <div>
+                            <div class="font-bold">检测到垃圾</div>
+                            <div class="text-sm">您可以点击垃圾点进行收集</div>
+                        </div>
+                    </div>
+                    
                     <!-- 地图渲染区域 -->
                     <div id="map" class="w-full h-full relative">
                         <!-- 路线进度指示器 -->
@@ -489,6 +613,9 @@
                         
                         <!-- 当前位置标记 -->
                         <div id="currentPosition" class="current-position"></div>
+                        
+                        <!-- 垃圾点标记 -->
+                        <!-- 动态生成 -->
                         
                         <!-- 地图路径线 -->
                         <!-- 动态生成 -->
@@ -517,10 +644,11 @@
                     </div>
                     
                     <div class="sensor-card p-4">
-                        <h3 class="text-sm text-gray-400 mb-1">探测距离</h3>
-                        <div class="text-lg font-semibold">
-                            <i class="fas fa-ruler-horizontal text-purple-400 mr-2"></i>
-                            <span class="sensor-value" id="distance-value">10.0 米</span>
+                        <h3 class="text-sm text-gray-400 mb-1">垃圾检测</h3>
+                        <div id="trash-status" class="text-lg font-semibold flex items-center">
+                            <i class="fas fa-trash text-yellow-400 mr-2"></i>
+                            <span class="sensor-value" id="trash-value">正在扫描</span>
+                            <span id="trash-indicator" class="obstacle-indicator obstacle-safe ml-2">无垃圾</span>
                         </div>
                     </div>
                 </div>
@@ -607,7 +735,7 @@
                         <div class="route-step-marker"></div>
                         <div class="flex items-center justify-between">
                             <div>
-                                <div class="font-medium">纪念品售卖出</div>
+                                <div class="font-medium">纪念品</div>
                                 <div class="text-sm text-gray-400">步行 250 米</div>
                             </div>
                             <div class="step-info-btn" onclick="showAttractionInfo('forest')">
@@ -617,13 +745,41 @@
                     </div>
                 </div>
                 
-                <div class="space-y-4">
+                <!-- 垃圾收集统计 -->
+                <div class="trash-stats">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-medium">环保行动</h3>
+                        <div class="text-sm text-blue-400">
+                            <span id="collected-count">0</span>/<span id="total-trash">0</span> 垃圾收集
+                        </div>
+                    </div>
+                    <div class="trash-progress">
+                        <div id="trash-progress-bar" class="trash-progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-400">
+                        收集垃圾可获得环保积分和成就
+                    </div>
+                    <button id="collect-btn" class="collect-btn mt-3 w-full" disabled>
+                        <i class="fas fa-trash-restore"></i>
+                        <span>收集垃圾</span>
+                    </button>
+                </div>
+                
+                <div class="space-y-4 mt-4">
                     <div class="bg-gradient-to-r from-blue-900 to-indigo-900 p-3 rounded-lg">
                         <div class="flex items-center">
                             <i class="fas fa-info-circle text-blue-300 mr-2"></i>
                             <span class="text-sm">当前海拔: 1420 米</span>
                         </div>
                     </div>
+                    
+                    <div class="bg-gradient-to-r from-gray-800 to-gray-900 p-3 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-temperature-low text-blue-400 mr-2"></i>
+                            
+                        </div>
+                    </div>
+                    
                     <button class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 flex items-center justify-center">
                         <i class="fas fa-route mr-2"></i>
                         重新规划路线
@@ -695,6 +851,28 @@
         </div>
     </div>
 
+    <!-- 垃圾收集确认弹窗 -->
+    <div id="trashCollectModal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-body p-6 text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-trash-restore text-green-500 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-medium mb-2">收集垃圾确认</h3>
+                <p class="text-gray-400 mb-6">您确定要收集这个垃圾吗？这将有助于保持冰雪世界的清洁环境。</p>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="closeTrashCollectModal()" class="py-2 px-4 border border-gray-600 rounded-md hover:bg-gray-800 transition">
+                        取消
+                    </button>
+                    <button id="confirm-collect" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md transition">
+                        确认收集
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="bg-gray-900 bg-opacity-80 backdrop-filter backdrop-blur-lg mt-8 py-8">
         <div class="container mx-auto px-4">
             <div class="flex flex-col md:flex-row justify-between">
@@ -708,7 +886,7 @@
                         <ul class="space-y-2">
                             <li><a href="index.html" class="text-gray-400 hover:text-white transition">首页</a></li>
                             <li><a href="map.html" class="text-gray-400 hover:text-white transition">地图导航</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition">垃圾检测</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white transition">景点介绍</a></li>
                             <li><a href="booking.html" class="text-gray-400 hover:text-white transition">预订信息</a></li>
                         </ul>
                     </div>
@@ -717,388 +895,215 @@
                         <ul class="space-y-2">
                             <li class="flex items-center"><i class="fas fa-envelope text-blue-400 mr-2"></i> <span class="text-gray-400">zy135246_2024@qq.com</span></li>
                             <li class="flex items-center"><i class="fas fa-phone text-blue-400 mr-2"></i> <span class="text-gray-400">132 8492 3154</span></li>
-                            <li class="flex items-center"><i class="fas fa-map-marker-alt text-blue-400 mr-2"></i> <span class="text-gray-400">哈尔滨冰雪世界主题公园</span></li>
+                            <li class="flex items-center"><i class="fas fa-map-marker-alt text-blue-400 mr-2"></i> <span class="text-gray-400">冰雪世界主题公园</span></li>
                         </ul>
                     </div>
                 </div>
             </div>
             <div class="border-t border-gray-800 mt-8 pt-6 text-center text-gray-500 text-sm">
-                &copy; 2025 东北小清华系统 版权所有。
+                &copy; 2025 东北小清华 版权所有
             </div>
         </div>
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // 移动菜单切换
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mobileMenu = document.getElementById('mobile-menu');
-            
-            mobileMenuButton.addEventListener('click', () => {
-                mobileMenu.classList.toggle('hidden');
-            });
-            
-            // 粒子特效
-            const particles = document.getElementById('particles');
-            
-            function createParticle() {
-                const particle = document.createElement('div');
-                particle.style.position = 'absolute';
-                particle.style.width = Math.random() * 3 + 1 + 'px';
-                particle.style.height = particle.style.width;
-                particle.style.backgroundColor = `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`;
-                particle.style.borderRadius = '50%';
-                particle.style.top = Math.random() * 100 + 'vh';
-                particle.style.left = Math.random() * 100 + 'vw';
-                
-                const duration = Math.random() * 20 + 10;
-                particle.style.animation = `float ${duration}s linear infinite`;
-                
-                const keyframes = `
-                    @keyframes float {
-                        0% {
-                            transform: translateY(0) rotate(0);
-                            opacity: ${Math.random() * 0.3 + 0.2};
-                        }
-                        50% {
-                            opacity: ${Math.random() * 0.3 + 0.1};
-                        }
-                        100% {
-                            transform: translateY(-${Math.random() * 100 + 50}vh) rotate(${Math.random() * 360}deg);
-                            opacity: 0;
-                        }
-                    }
-                `;
-                
-                const style = document.createElement('style');
-                style.innerHTML = keyframes;
-                document.head.appendChild(style);
-                
-                particles.appendChild(particle);
-                
-                setTimeout(() => {
-                    particle.remove();
-                    style.remove();
-                }, duration * 1000);
-            }
-            
-            // 创建初始粒子
-            for (let i = 0; i < 30; i++) {
-                createParticle();
-            }
-            
-            // 定期创建新粒子
-            setInterval(createParticle, 1000);
-            
-            // 地图渲染逻辑
-            const map = document.getElementById('map');
-            const currentPosition = document.getElementById('currentPosition');
-            const routeProgress = document.getElementById('routeProgress');
-            
-            // 地图点位数据
-            const locations = [
-                { id: 'entrance', name: '冰雪世界入口', x: 15, y: 80 },
-                { id: 'icesculpture', name: '冰雪大世界售票处', x: 25, y: 60 },
-                { id: 'sledtrack', name: '雪景酒店', x: 45, y: 40 },
-                { id: 'restaurant', name: '铁锅炖', x: 65, y: 30 },
-                { id: 'forest', name: '纪念品售卖出', x: 85, y: 20 }
-            ];
-            
-            // 路线数据
-            const routes = [
-                { from: 'entrance', to: 'icesculpture' },
-                { from: 'icesculpture', to: 'sledtrack' },
-                { from: 'sledtrack', to: 'restaurant' },
-                { from: 'restaurant', to: 'forest' }
-            ];
-            
-            // 渲染地图点位
-            locations.forEach(location => {
-                const point = document.createElement('div');
-                point.className = 'map-point';
-                point.id = `point-${location.id}`;
-                point.style.left = `${location.x}%`;
-                point.style.top = `${location.y}%`;
-                point.style.backgroundColor = location.id === 'entrance' ? '#3b82f6' : '#6366f1';
-                
-                const label = document.createElement('div');
-                label.className = 'map-point-label';
-                label.textContent = location.name;
-                
-                point.appendChild(label);
-                map.appendChild(point);
-            });
-            
-            // 渲染路径线
-            routes.forEach(route => {
-                const fromPoint = locations.find(l => l.id === route.from);
-                const toPoint = locations.find(l => l.id === route.to);
-                
-                if (fromPoint && toPoint) {
-                    const dx = toPoint.x - fromPoint.x;
-                    const dy = toPoint.y - fromPoint.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-                    
-                    const path = document.createElement('div');
-                    path.className = 'path-line';
-                    path.id = `path-${route.from}-${route.to}`;
-                    path.style.left = `${fromPoint.x}%`;
-                    path.style.top = `${fromPoint.y}%`;
-                    path.style.width = `${distance}%`;
-                    path.style.transform = `rotate(${angle}deg)`;
-                    
-                    map.appendChild(path);
-                }
-            });
-            
-            // 模拟导航进度
-            let progress = 0;
-            let currentPathIndex = 0;
-            
-            function updatePosition() {
-                if (progress >= 100) {
-                    currentPathIndex++;
-                    progress = 0;
-                    
-                    if (currentPathIndex >= routes.length) {
-                        clearInterval(navigationInterval);
-                        return;
-                    }
-                }
-                
-                const route = routes[currentPathIndex];
-                const fromPoint = locations.find(l => l.id === route.from);
-                const toPoint = locations.find(l => l.id === route.to);
-                
-                if (fromPoint && toPoint) {
-                    const x = fromPoint.x + (toPoint.x - fromPoint.x) * (progress / 100);
-                    const y = fromPoint.y + (toPoint.y - fromPoint.y) * (progress / 100);
-                    
-                    currentPosition.style.left = `${x}%`;
-                    currentPosition.style.top = `${y}%`;
-                    
-                    routeProgress.style.width = `${(currentPathIndex * 100 + progress) / routes.length}%`;
-                }
-                
-                progress += 0.5;
-            }
-            
-            const navigationInterval = setInterval(updatePosition, 100);
-            
-            // 初始化位置
-            const startPoint = locations.find(l => l.id === 'entrance');
-            if (startPoint) {
-                currentPosition.style.left = `${startPoint.x}%`;
-                currentPosition.style.top = `${startPoint.y}%`;
-            }
-
-            // 障碍物检测逻辑
-            const obstacleWarning = document.getElementById('obstacleWarning');
-            const obstacleStatus = document.getElementById('obstacle-value');
-            const obstacleIndicator = document.getElementById('obstacle-indicator');
-            const stepObstacleStatus = document.getElementById('step-obstacle-status');
-            const distanceValue = document.getElementById('distance-value');
-            
-            // 障碍物状态类型
-            const OBSTACLE_STATUS = {
-                SAFE: { class: 'obstacle-safe', text: '安全', icon: 'fa-check' },
-                WARNING: { class: 'obstacle-warning-indicator', text: '注意', icon: 'fa-exclamation' },
-                DANGER: { class: 'obstacle-danger', text: '危险', icon: 'fa-exclamation-triangle' }
-            };
-            
-            // 更新障碍物状态指示器
-            function updateObstacleIndicator(status) {
-                // 移除所有可能的类
-                obstacleIndicator.classList.remove('obstacle-safe', 'obstacle-warning-indicator', 'obstacle-danger');
-                stepObstacleStatus.classList.remove('obstacle-safe', 'obstacle-warning-indicator', 'obstacle-danger');
-                
-                // 添加对应的类
-                obstacleIndicator.classList.add(status.class);
-                stepObstacleStatus.classList.add(status.class);
-                
-                // 更新文本
-                obstacleIndicator.textContent = status.text;
-                stepObstacleStatus.textContent = status.text;
-                
-                // 显示/隐藏警告弹窗
-                if (status === OBSTACLE_STATUS.DANGER) {
-                    obstacleWarning.classList.add('active');
-                } else {
-                    obstacleWarning.classList.remove('active');
-                }
-            }
-            
-            // 模拟障碍物检测
-            let obstacleDetectionActive = true;
-            let currentDetectionState = OBSTACLE_STATUS.SAFE;
-            
-            function simulateObstacleDetection() {
-                // 随机决定障碍物状态
-                const random = Math.random();
-                
-                if (random < 0.7) {
-                    // 70% 概率安全
-                    currentDetectionState = OBSTACLE_STATUS.SAFE;
-                    obstacleStatus.textContent = '路径清晰';
-                    updateObstacleIndicator(OBSTACLE_STATUS.SAFE);
-                } else if (random < 0.9) {
-                    // 20% 概率警告
-                    currentDetectionState = OBSTACLE_STATUS.WARNING;
-                    obstacleStatus.textContent = '检测到小障碍';
-                    updateObstacleIndicator(OBSTACLE_STATUS.WARNING);
-                } else {
-                    // 10% 概率危险
-                    currentDetectionState = OBSTACLE_STATUS.DANGER;
-                    obstacleStatus.textContent = '检测到大障碍';
-                    updateObstacleIndicator(OBSTACLE_STATUS.DANGER);
-                }
-                
-                // 更新距离显示
-                const distance = (5 + Math.random() * 10).toFixed(1);
-                distanceValue.textContent = `${distance} 米`;
-                
-                // 如果检测到危险，暂停导航
-                if (currentDetectionState === OBSTACLE_STATUS.DANGER) {
-                    clearInterval(navigationInterval);
-                    
-                    // 5秒后自动恢复导航
-                    setTimeout(() => {
-                        const navigationInterval = setInterval(updatePosition, 100);
-                    }, 5000);
-                }
-            }
-            
-            // 定期检测障碍物
-            const obstacleDetectionInterval = setInterval(simulateObstacleDetection, 3000);
-            
-            // 添加传感器数据动画效果
-            function animateSensorData() {
-                // GPS 信号强度波动
-                const gpsValue = document.getElementById('gps-value');
-                const gpsSignalStrength = Math.floor(Math.random() * 3) + 3; // 3-5 格信号
-                gpsValue.textContent = `已连接 (${gpsSignalStrength}格信号)`;
-            }
-            
-            // 定期更新传感器数据
-            setInterval(animateSensorData, 5000);
+        // 移动菜单切换
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
         });
-
-        // 景点信息数据
-        const attractionsData = {
-            'entrance': {
-                title: '冰雪世界入口',
-                image: 'https://picsum.photos/id/122/800/400',
-                description: '欢迎来到冰雪世界！这里是我们的主入口，您可以在此办理入场手续、领取导览图和智能导游设备。入口大厅采用了北欧风格设计，巨大的冰晶吊灯和动态光影投影会让您立刻感受到冰雪世界的神奇魅力。',
-                rating: '4.7 (1243条评价)',
-                openHours: '09:00 - 21:00',
-                duration: '15-20分钟',
-                price: '包含在门票中',
-                location: '冰雪世界南门',
-                visitorCount: '347',
-                tags: ['入口大厅', '服务中心', '信息咨询']
-            },
-            'icesculpture': {
-                title: '冰雕艺术馆',
-                image: 'https://picsum.photos/id/164/800/400',
-                description: '冰雕艺术馆是冰雪世界最受欢迎的景点之一，这里汇集了世界各地顶级冰雕艺术家的作品。巨大的冰雕展厅内常年保持在-15°C的恒温环境，透明如水晶的冰块在彩色灯光照射下呈现出梦幻般的色彩。展馆分为"神话传说"、"自然奇观"、"现代艺术"三个主题区域，每季度更新展品。',
-                rating: '4.9 (2157条评价)',
-                openHours: '10:00 - 20:30',
-                duration: '45-60分钟',
-                price: '98元/人',
-                location: '冰雪世界中央区',
-                visitorCount: '526',
-                tags: ['艺术展览', '摄影胜地', '冰雕艺术']
-            },
-            'sledtrack': {
-                title: '雪橇滑道',
-                image: 'https://picsum.photos/id/134/800/400',
-                description: '刺激好玩的雪橇滑道是家庭游客的最爱！全长350米的螺旋式滑道从15米高的雪山顶部一路蜿蜒而下，最高速度可达40公里/小时。滑道采用了特殊的防摩擦材料，确保滑行顺畅和安全。滑道旁设有自动扶梯，方便游客反复体验这一刺激项目。我们提供单人和双人雪橇，适合不同年龄段的游客。',
-                rating: '4.8 (1834条评价)',
-                openHours: '10:00 - 20:00',
-                duration: '30-40分钟',
-                price: '120元/人(无限次)',
-                location: '冰雪世界西北区',
-                visitorCount: '418',
-                tags: ['刺激体验', '亲子活动', '冬季运动']
-            },
-            'restaurant': {
-                title: '北极星餐厅',
-                image: 'https://picsum.photos/id/292/800/400',
-                description: '北极星餐厅是冰雪世界内的五星级主题餐厅，餐厅顶部的穹顶采用全透明设计，白天可欣赏皑皑白雪，夜晚则能观赏星空和北极光投影。我们的菜单融合了北欧和亚洲风味，特别推荐冰川蓝莓慕斯、极光三文鱼和冰雪特饮。餐厅中央的冰吧台提供各种特色鸡尾酒，是休息和社交的绝佳场所。',
-                rating: '4.6 (987条评价)',
-                openHours: '11:30 - 22:00',
-                duration: '60-90分钟',
-                price: '人均268元',
-                location: '冰雪世界中央广场',
-                visitorCount: '275',
-                tags: ['主题餐厅', '北欧美食', '观景餐厅']
-            },
-            'forest': {
-                title: '雪国奇幻森林',
-                image: 'https://picsum.photos/id/15/800/400',
-                description: '雪国奇幻森林是一个结合了自然景观和科技的沉浸式体验区。森林中的人造雪松和冰晶树上装饰着数千个LED灯，随着音乐变换出不同的灯光秀。夜晚的光影秀更是震撼，360度的投影技术让您仿佛置身于魔法森林。园区隐藏了多个互动装置，游客可以通过触摸、声音控制不同的灯光效果。森林中央的"冰晶湖"适合拍照留念，是社交媒体上的热门打卡地。',
-                rating: '4.9 (1567条评价)',
-                openHours: '10:00 - 21:30',
-                duration: '40-60分钟',
-                price: '158元/人',
-                location: '冰雪世界东区',
-                visitorCount: '382',
-                tags: ['光影秀', '互动体验', '拍照胜地']
-            }
-        };
-
-        // 显示景点详情模态框
-        function showAttractionInfo(attractionId) {
-            const modal = document.getElementById('attractionModal');
-            const data = attractionsData[attractionId];
+        
+        // 粒子特效
+        const particles = document.getElementById('particles');
+        
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.style.position = 'absolute';
+            particle.style.width = Math.random() * 3 + 1 + 'px';
+            particle.style.height = particle.style.width;
+            particle.style.backgroundColor = `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`;
+            particle.style.borderRadius = '50%';
+            particle.style.top = Math.random() * 100 + 'vh';
+            particle.style.left = Math.random() * 100 + 'vw';
             
-            if (data) {
-                // 填充模态框内容
-                document.getElementById('modalImage').src = data.image;
-                document.getElementById('modalTitle').textContent = data.title;
-                document.getElementById('modalDescription').textContent = data.description;
-                document.getElementById('modalRating').textContent = data.rating;
-                document.getElementById('modalOpenHours').textContent = data.openHours;
-                document.getElementById('modalDuration').textContent = data.duration;
-                document.getElementById('modalPrice').textContent = data.price;
-                document.getElementById('modalLocation').textContent = data.location;
-                document.getElementById('modalVisitorCount').textContent = data.visitorCount;
-                
-                // 设置预订链接
-                document.getElementById('bookingLink').href = `booking.html?attraction=${attractionId}`;
-                
-                // 生成标签
-                const tagsContainer = document.getElementById('modalTags');
-                tagsContainer.innerHTML = '';
-                data.tags.forEach(tag => {
-                    const tagEl = document.createElement('span');
-                    tagEl.className = 'feature-tag';
-                    tagEl.textContent = tag;
-                    tagsContainer.appendChild(tagEl);
-                });
-                
-                // 显示模态框
-                modal.classList.add('active');
-                
-                // 禁止背景滚动
-                document.body.style.overflow = 'hidden';
+            const duration = Math.random() * 20 + 10;
+            particle.style.animation = `float ${duration}s linear infinite`;
+            
+            const keyframes = `
+                @keyframes float {
+                    0% {
+                        transform: translateY(0) rotate(0);
+                        opacity: ${Math.random() * 0.3 + 0.2};
+                    }
+                    50% {
+                        opacity: ${Math.random() * 0.3 + 0.1};
+                    }
+                    100% {
+                        transform: translateY(-${Math.random() * 100 + 50}vh) rotate(${Math.random() * 360}deg);
+                        opacity: 0;
+                    }
+                }
+            `;
+            
+            const style = document.createElement('style');
+            style.innerHTML = keyframes;
+            document.head.appendChild(style);
+            
+            particles.appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+                style.remove();
+            }, duration * 1000);
+        }
+        
+        // 创建初始粒子
+        for (let i = 0; i < 30; i++) {
+            createParticle();
+        }
+        
+        // 定期创建新粒子
+        setInterval(createParticle, 1000);
+        
+        // 垃圾数据
+        const trashData = [
+            { id: 'trash1', x: 30, y: 50, type: 'plastic', collected: false },
+            { id: 'trash2', x: 40, y: 45, type: 'paper', collected: false },
+            { id: 'trash3', x: 50, y: 35, type: 'can', collected: false },
+            { id: 'trash4', x: 60, y: 30, type: 'plastic', collected: false },
+            { id: 'trash5', x: 70, y: 25, type: 'paper', collected: false }
+        ];
+        
+        // 渲染垃圾点
+        function renderTrashPoints() {
+            trashData.forEach(trash => {
+                if (!trash.collected) {
+                    const trashPoint = document.createElement('div');
+                    trashPoint.className = 'trash-point';
+                    trashPoint.id = trash.id;
+                    trashPoint.style.left = `${trash.x}%`;
+                    trashPoint.style.top = `${trash.y}%`;
+                    
+                    const trashLabel = document.createElement('div');
+                    trashLabel.className = 'trash-label';
+                    trashLabel.textContent = `${trash.type === 'plastic' ? '塑料瓶' : trash.type === 'paper' ? '纸屑' : '易拉罐'}`;
+                    
+                    trashPoint.appendChild(trashLabel);
+                    map.appendChild(trashPoint);
+                    
+                    // 添加点击事件
+                    trashPoint.addEventListener('click', function() {
+                        selectedTrashId = trash.id;
+                        openTrashCollectModal();
+                    });
+                }
+            });
+            
+            // 更新垃圾统计
+            updateTrashStats();
+        }
+        
+        // 更新垃圾统计
+        function updateTrashStats() {
+            const totalTrash = trashData.length;
+            const collectedCount = trashData.filter(t => t.collected).length;
+            
+            document.getElementById('collected-count').textContent = collectedCount;
+            document.getElementById('total-trash').textContent = totalTrash;
+            
+            const progressPercent = (collectedCount / totalTrash) * 100;
+            document.getElementById('trash-progress-bar').style.width = `${progressPercent}%`;
+            
+            // 如果有未收集的垃圾，启用收集按钮
+            if (collectedCount < totalTrash) {
+                collectBtn.disabled = false;
+            } else {
+                collectBtn.disabled = true;
             }
         }
-
-        // 关闭景点详情模态框
-        function closeAttractionInfo() {
-            const modal = document.getElementById('attractionModal');
-            modal.classList.remove('active');
-            
-            // 恢复背景滚动
+        
+        // 打开垃圾收集确认弹窗
+        function openTrashCollectModal() {
+            document.getElementById('trashCollectModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // 关闭垃圾收集确认弹窗
+        function closeTrashCollectModal() {
+            document.getElementById('trashCollectModal').classList.remove('active');
             document.body.style.overflow = '';
+            selectedTrashId = null;
         }
-
-        // 点击背景关闭模态框
-        document.getElementById('attractionModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeAttractionInfo();
+        
+        // 确认收集垃圾
+        document.getElementById('confirm-collect').addEventListener('click', function() {
+            if (selectedTrashId) {
+                // 标记垃圾为已收集
+                const trash = trashData.find(t => t.id === selectedTrashId);
+                if (trash) {
+                    trash.collected = true;
+                    
+                    // 更新UI
+                    const trashElement = document.getElementById(trash.id);
+                    if (trashElement) {
+                        trashElement.classList.add('trash-collected');
+                        setTimeout(() => {
+                            trashElement.remove();
+                        }, 1000);
+                    }
+                    
+                    // 显示收集成功提示
+                    trashAlert.classList.add('active');
+                    setTimeout(() => {
+                        trashAlert.classList.remove('active');
+                    }, 3000);
+                    
+                    // 更新统计
+                    updateTrashStats();
+                    
+                    // 保存到localStorage
+                    saveTrashCollection();
+                }
+            }
+            
+            closeTrashCollectModal();
+        });
+        
+        // 保存垃圾收集数据
+        function saveTrashCollection() {
+            const collectedTrash = trashData.filter(t => t.collected).map(t => t.id);
+            localStorage.setItem('collectedTrash', JSON.stringify(collectedTrash));
+        }
+        
+        // 加载垃圾收集数据
+        function loadTrashCollection() {
+            const collectedTrash = JSON.parse(localStorage.getItem('collectedTrash')) || [];
+            trashData.forEach(trash => {
+                if (collectedTrash.includes(trash.id)) {
+                    trash.collected = true;
+                }
+            });
+        }
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载垃圾收集数据
+            loadTrashCollection();
+            
+            // 渲染垃圾点
+            renderTrashPoints();
+            
+            // 如果有未收集的垃圾，显示提示
+            const hasUncollectedTrash = trashData.some(t => !t.collected);
+            if (hasUncollectedTrash) {
+                setTimeout(() => {
+                    trashAlert.classList.add('active');
+                    setTimeout(() => {
+                        trashAlert.classList.remove('active');
+                    }, 3000);
+                }, 2000);
             }
         });
     </script>
